@@ -27,6 +27,6 @@ public class Bro implements Person {
 	}
 
 	public void ProposeTo(int chick) {
-		
+
 	}
 }
