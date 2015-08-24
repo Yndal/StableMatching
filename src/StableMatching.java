@@ -11,35 +11,10 @@ public class StableMatching {
 	
 	public void readData(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
-		
-		scanner;
-		
-		
-		
-		
-		
 	}
-	
-	
-	
 	
 	public void main(String[] args) throws Exception{
 		String filepath = "input/sm-bbt-in.txt";
 		StableMatching sm = new StableMatching(filepath);
-		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
 }
