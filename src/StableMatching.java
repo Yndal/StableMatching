@@ -4,8 +4,9 @@ import java.util.Scanner;
 
 public class StableMatching {
 	
-	int[] men;
-	int[] women;
+	Person[] men;
+	Person[] women;
+		
 	
 	public StableMatching(String path) throws Exception{
 		File file = new File(path);
@@ -23,17 +24,24 @@ public class StableMatching {
 		int n = Integer.valueOf(str);
 		System.out.println("n: " + n);
 		
-		men = new int[n];
-		women = new int[n];
+		men = new Person[n];
+		women = new Person[n];
 		
+		boolean man = true;
+		int menidx=0;
+		int womenidx=0;
 		while(!(str = scanner.nextLine()).isEmpty()){
 			int index = str.indexOf(" ");
 			int number = Integer.valueOf(str.substring(0, index));
 			String name = str.substring(index + 1);
-			System.out.println("number: " + number + ", name: " + name);
+
+			if (man) {
+				men[menidx++] = new Bro(name, number);
+			} else {
+				women[womenidx++] = new Chick(name, number);
+			}
+			man = !man;
 		}
-		
-		System.out.println("---------");
 		
 		while(scanner.hasNextLine() && !(str = scanner.nextLine()).isEmpty()){
 			int person = str.indexOf(":");
@@ -44,7 +52,6 @@ public class StableMatching {
 					
 					int prio = Integer.valueOf(priorities.substring(0, index1 == -1 ? priorities.length() : index1));
 					priorities = priorities.substring(priorities.indexOf(' ')+1);
-					
 					System.out.print(prio + " ");
 				}
 				System.out.println();			

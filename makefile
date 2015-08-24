@@ -1,4 +1,4 @@
 bin/StableMatching.java: src/*.java
-	javac src/StableMatching.java -d bin
+	javac src/* -d bin
 run:
 	java -classpath bin StableMatching

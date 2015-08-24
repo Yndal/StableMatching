@@ -10,16 +10,27 @@ abstract class Person {
 		this.name = name;
 		this.preferences = preferences;
 	}
+
+	public Person(String name, int id) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public void SetPreferences(int[] preferences) {
+		this.preferences = preferences;
+	}
 }
 
 class Chick extends Person {
 	public Chick(String name, int id, int[] preferences) {
 		super(name, id, preferences);
 	}
+
+	public Chick(String name, int id) {
+		super(name, id);
+	}
 	
 	public boolean acceptPropose(Bro bro){
-		
-		
 		return true;
 	}
 }
@@ -27,6 +38,10 @@ class Chick extends Person {
 class Bro extends Person {
 	public Bro(String name, int id, int[] preferences) {
 		super(name, id, preferences);
+	}
+
+	public Bro(String name, int id) {
+		super(name, id);
 	}
 
 	public int NextPreference() {
