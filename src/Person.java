@@ -1,32 +1,39 @@
-abstract public class Person {
+abstract class Person {
+	int[] preferences;
+	int[] invertedPreferences;
+	int nextPrefered = 0;
+	int id;
+	String name;
+
 	public Person(String name, int id, int[] preferences) {
-		this.myId = id;
-		this.myName = name;
-		this.preferences = preferences
+		this.id = id;
+		this.name = name;
+		this.preferences = preferences;
 	}
 }
 
-public class Chick implements Person {
+class Chick extends Person {
 	public Chick(String name, int id, int[] preferences) {
-		super(name, id, Preferences)
+		super(name, id, preferences);
+	}
+	
+	public boolean acceptPropose(Bro bro){
+		
+		
+		return true;
 	}
 }
 
-public class Bro implements Person {
-	private int[] preferences;
-	private int nextPrefered = 0;
-	private int id;
-	private String name;
-
+class Bro extends Person {
 	public Bro(String name, int id, int[] preferences) {
-		super(name, id, Preferences)
+		super(name, id, preferences);
 	}
 
 	public int NextPreference() {
-		return Preferences[nextPrefered++];
+		return preferences[nextPrefered++];
 	}
 
-	public void ProposeTo(int chick) {
-
+	public void ProposeTo(Chick chick) {
+		chick.acceptPropose(this);
 	}
 }
