@@ -9,13 +9,13 @@ abstract class Person {
 	final String name;
 	//boolean isEngaged = false;
 	Person engagedTo;
-	
+
 	public Person(String name, int id, int[] preferences) {
 		this.id = id;
 		this.name = name;
 		SetPreferences(preferences);
 	}
-	
+
 	public Person(String name, int id) {
 		this.id = id;
 		this.name = name;
@@ -24,11 +24,11 @@ abstract class Person {
 	public boolean isEngaged(){
 		return engagedTo != null; 
 	}
-	
+
 	public int getId(){
 		return id;
 	}
-	
+
 	public String getName(){
 		return name;
 	}
@@ -43,7 +43,7 @@ abstract class Person {
 
 class Chick extends Person {
 	Bro engagedTo;
-	
+
 	public Chick(String name, int id, int[] preferences) {
 		super(name, id, preferences);
 	}
@@ -51,26 +51,21 @@ class Chick extends Person {
 	public Chick(String name, int id) {
 		super(name, id);
 	}
-	
+
 	public Bro acceptPropose(Bro bro){
-		if(nextPrefered <= invertedPreferences.get(bro.getId())){
-			nextPrefered = invertedPreferences.get(bro.getId())+1; //TODO Should this be minus
-			
-			Bro xBro = engagedTo;
-			if(engagedTo != null){
-				divorce(engagedTo);
-			}
+		if(engagedTo == null){
 			engagedTo = bro;
-			
-			return xBro;
+
+			return null;
+		} else if(invertedPreferences.get(bro.getId()) < invertedPreferences.get(engagedTo.getId())){
+			Bro divorcedFellow = engagedTo;
+			engagedTo.divorceFrom(this);
+			engagedTo = bro;
+
+			return divorcedFellow;
+		} else {
+			return null;
 		}
-		
-		return null;
-	}
-	
-	private void divorce(Bro bro){
-		bro.divorceFrom(this);
-		engagedTo = null;
 	}
 }
 
@@ -83,27 +78,24 @@ class Bro extends Person {
 		super(name, id);
 	}
 
-	public int NextPreference() {
+	public int getNextPrefered() {
 		return preferences[nextPrefered++];
 	}
 	
-	public int getNextPrefered(){
-		return nextPrefered;
-	}
-
 	public Bro ProposeTo(Chick chick) {
 		Bro divorcedBro = chick.acceptPropose(this);
-		if(divorcedBro != null){
+
+		if(this == chick.engagedTo){
 			engagedTo = chick;
 		}
-		
+
 		return divorcedBro;
 	}
-	
+
 	public void divorceFrom(Chick chick){
 		engagedTo = null;
 	}
-	
+
 	public String getMarriageString(){
 		return this.name + " -- " + engagedTo.getName();
 	}

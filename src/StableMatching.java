@@ -11,7 +11,7 @@ public class StableMatching {
 	Stack<Bro> engagedMen = new Stack<>();
 	List<Chick> chicks = new ArrayList<>();
 	Stack<Chick> engagedWomen = new Stack<>();
-		
+	Person[] people;
 	
 	
 	public StableMatching(String path) throws Exception{
@@ -32,7 +32,7 @@ public class StableMatching {
 		Bro[] men = new Bro[n];
 		Chick[] women = new Chick[n];
 		//first field emtpy, indexed by ids from input
-		Person[] people = new Person[n*2];
+		people = new Person[n*2];
 		
 		boolean man = true;
 		int menidx=0;
@@ -57,7 +57,7 @@ public class StableMatching {
 		int p = 0;
 		while(scanner.hasNextLine() && !(str = scanner.nextLine()).isEmpty()){
 			int person = str.indexOf(":");
-			int personIndex = Integer.valueOf(str.substring(0, person));
+			//int personIndex = Integer.valueOf(str.substring(0, person));
 			String priorities = str.substring(str.indexOf(' ')+1);
 			int[] prefs = new int[n];
 			for(int i=0; i<n; i++){
@@ -82,13 +82,17 @@ public class StableMatching {
 	public void solve(){
 		while(!bros.isEmpty()){
 			Bro bro = bros.pop();
-			Chick chick = chicks.get(bro.getNextPrefered());
+			Chick chick = (Chick) people[bro.getNextPrefered()];
 			Bro divorcedBro = bro.ProposeTo(chick);
+			if(chick.engagedTo == bro){
+				engagedMen.push(bro);
+			} else
+				bros.push(bro);
+			
 			if(divorcedBro != null){
 				bros.push(divorcedBro);
 				engagedMen.remove(divorcedBro);
-			}
-			engagedMen.push(bro);
+			} 
 		}
 	}
 	
