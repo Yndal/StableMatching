@@ -12,18 +12,24 @@ public class StableMatching {
 	public void readData(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
 		
-		scanner;
+		//Skip the first lines of comments
+		String str;
+		while((str = scanner.nextLine()).startsWith("#"));
+		
+		int n = Integer.valueOf(str);
+		System.out.println("n: " + n);
 		
 		
 		
 		
 		
+		scanner.close();
 	}
 	
 	
 	
 	
-	public void main(String[] args) throws Exception{
+	public static void main(String[] args) throws Exception{
 		String filepath = "input/sm-bbt-in.txt";
 		StableMatching sm = new StableMatching(filepath);
 		
