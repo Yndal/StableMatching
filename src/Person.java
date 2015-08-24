@@ -23,6 +23,10 @@ abstract class Person {
 	public int getId(){
 		return id;
 	}
+	
+	public String getName(){
+		return name;
+	}
 }
 
 class Chick extends Person {
@@ -72,5 +76,9 @@ class Bro extends Person {
 	
 	public void divorceFrom(Chick chick){
 		engagedTo = null;
+	}
+	
+	public String getMarriageString(){
+		return this.name + " -- " + engagedTo.getName();
 	}
 }
