@@ -1,11 +1,16 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class StableMatching {
 	
-	Person[] men;
-	Person[] women;
+	Stack<Bro> bros = new Stack<>();
+	Stack<Bro> engagedMen = new Stack<>();
+	List<Chick> women = new ArrayList<>();
+	Stack<Chick> engagedWomen = new Stack<>();
 		
 	
 	public StableMatching(String path) throws Exception{
@@ -24,9 +29,6 @@ public class StableMatching {
 		int n = Integer.valueOf(str);
 		System.out.println("n: " + n);
 		
-		men = new Person[n];
-		women = new Person[n];
-		
 		boolean man = true;
 		int menidx=0;
 		int womenidx=0;
@@ -36,9 +38,9 @@ public class StableMatching {
 			String name = str.substring(index + 1);
 
 			if (man) {
-				men[menidx++] = new Bro(name, number);
+				;//men[menidx++] = new Bro(name, number);
 			} else {
-				women[womenidx++] = new Chick(name, number);
+				;//women[womenidx++] = new Chick(name, number);
 			}
 			man = !man;
 		}
@@ -60,9 +62,26 @@ public class StableMatching {
 		scanner.close();
 	}
 	
+	public void solve(){
+		while(!bros.isEmpty()){
+			Bro bro = bros.pop();
+			Chick chick = women.get(bro.getNextPrefered());
+			Bro divorcedBro = bro.ProposeTo(chick);
+			if(divorcedBro != null)
+				bros.push(divorcedBro);
+		}
+	}
+	
+	public void printResult(){
+		while(!engagedMen.isEmpty())
+			System.out.println(engagedMen.pop().getMarriageString());
+	}
+	
 	public static void main(String[] args) throws Exception{
 		String filepath = "input/sm-bbt-in.txt";
 		StableMatching sm = new StableMatching(filepath);
+		sm.solve();
+		sm.printResult();
 		
 	}
 

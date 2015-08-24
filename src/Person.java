@@ -49,17 +49,18 @@ class Chick extends Person {
 		super(name, id);
 	}
 	
-	public boolean acceptPropose(Bro bro){
+	public Bro acceptPropose(Bro bro){
 		if(nextPrefered <= invertedPreferences[bro.getId()]){
 			nextPrefered = invertedPreferences[bro.getId()]+1;
 			
+			Bro xBro = engagedTo;
 			divorce(engagedTo);
 			engagedTo = bro;
 			
-			return true;
+			return xBro;
 		}
 		
-		return false;
+		return null;
 	}
 	
 	private void divorce(Bro bro){
@@ -85,10 +86,13 @@ class Bro extends Person {
 		return nextPrefered;
 	}
 
-	public void ProposeTo(Chick chick) {
-		if(chick.acceptPropose(this)){
+	public Bro ProposeTo(Chick chick) {
+		Bro divorcedBro = chick.acceptPropose(this);
+		if(divorcedBro != null){
 			engagedTo = chick;
 		}
+		
+		return divorcedBro;
 	}
 	
 	public void divorceFrom(Chick chick){
