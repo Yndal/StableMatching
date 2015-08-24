@@ -7,7 +7,6 @@ public class StableMatching {
 	int[] men;
 	int[] women;
 	
-	
 	public StableMatching(String path) throws Exception{
 		File file = new File(path);
 		readData(file);
@@ -51,35 +50,13 @@ public class StableMatching {
 				System.out.println();			
 		}
 		
-		
-		
-		
-		
-		
-		
 		scanner.close();
 	}
-	
-	
-	
 	
 	public static void main(String[] args) throws Exception{
 		String filepath = "input/sm-bbt-in.txt";
 		StableMatching sm = new StableMatching(filepath);
 		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }
