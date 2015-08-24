@@ -33,8 +33,8 @@ class Chick extends Person {
 	}
 	
 	public boolean acceptPropose(Bro bro){
-		if(nextPrefered < invertedPreferences[bro.getId()]){
-			nextPrefered = invertedPreferences[bro.getId()];
+		if(nextPrefered <= invertedPreferences[bro.getId()]){
+			nextPrefered = invertedPreferences[bro.getId()]+1;
 			
 			divorce(engagedTo);
 			engagedTo = bro;
