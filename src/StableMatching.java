@@ -40,13 +40,11 @@ public class StableMatching {
 			String name = str.substring(index + 1);
 
 			if (number%2 == 0) {
-				Bro bro = new Bro(name, number);
+				Bro bro = new Bro(name, number/2);
 				men[number/2] = bro;
-	//			people[number] = bro;
 			} else {
-				Chick chick = new Chick(name, number);
+				Chick chick = new Chick(name, number/2);
 				women[number/2] = chick;
-		//		people[number] = chick;
 			}
 		}
 		

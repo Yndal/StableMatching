@@ -3,7 +3,7 @@ import java.util.HashMap;
 
 abstract class Person {
 	int[] preferences;
-	Map<Integer,Integer> invertedPreferences;
+	int[] invertedPreferences;
 	int nextPrefered = 0;
 	final int id;
 	final String name;
@@ -35,9 +35,9 @@ abstract class Person {
 
 	public void SetPreferences(int[] preferences) {
 		this.preferences = preferences;
-		invertedPreferences = new HashMap<Integer,Integer>();
+		invertedPreferences = new int[preferences.length];
 		for(int i=0; i<preferences.length; i++)
-			invertedPreferences.put(preferences[i], i);
+			invertedPreferences[preferences[i]] = i;
 	}
 }
 
@@ -55,9 +55,8 @@ class Chick extends Person {
 			engagedTo = bro;
 
 			return null;
-		} else if(invertedPreferences.get(bro.getId()) 
-				< invertedPreferences.get(
-						this.engagedTo.getId())){
+		} else if(invertedPreferences[bro.getId()] 
+				< invertedPreferences[engagedTo.getId()]){
 			Bro divorcedFellow = (Bro) engagedTo;
 			divorcedFellow.divorceFrom(this);
 			engagedTo = bro;
