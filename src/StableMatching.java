@@ -9,9 +9,10 @@ public class StableMatching {
 	
 	Stack<Bro> bros = new Stack<>();
 	Stack<Bro> engagedMen = new Stack<>();
-	List<Chick> women = new ArrayList<>();
+	List<Chick> chicks = new ArrayList<>();
 	Stack<Chick> engagedWomen = new Stack<>();
 		
+	
 	
 	public StableMatching(String path) throws Exception{
 		File file = new File(path);
@@ -27,48 +28,67 @@ public class StableMatching {
 		
 		str = str.substring(str.indexOf('=')+1);
 		int n = Integer.valueOf(str);
-		System.out.println("n: " + n);
+		
+		Bro[] men = new Bro[n];
+		Chick[] women = new Chick[n];
+		//first field emtpy, indexed by ids from input
+		Person[] people = new Person[n*2];
 		
 		boolean man = true;
 		int menidx=0;
 		int womenidx=0;
 		while(!(str = scanner.nextLine()).isEmpty()){
 			int index = str.indexOf(" ");
-			int number = Integer.valueOf(str.substring(0, index));
+			int number = Integer.valueOf(str.substring(0, index)) -1;
 			String name = str.substring(index + 1);
 
 			if (man) {
-				;//men[menidx++] = new Bro(name, number);
+				Bro bro = new Bro(name, number);
+				men[menidx++] = bro;
+				people[number] = bro;
 			} else {
-				;//women[womenidx++] = new Chick(name, number);
+				Chick chick = new Chick(name, number);
+				women[womenidx++] = chick;
+				people[number] = chick;
 			}
 			man = !man;
 		}
 		
+		int p = 0;
 		while(scanner.hasNextLine() && !(str = scanner.nextLine()).isEmpty()){
 			int person = str.indexOf(":");
 			int personIndex = Integer.valueOf(str.substring(0, person));
 			String priorities = str.substring(str.indexOf(' ')+1);
-				for(int i=0; i<n; i++){
-					int index1 = priorities.indexOf(' ');
-					
-					int prio = Integer.valueOf(priorities.substring(0, index1 == -1 ? priorities.length() : index1));
-					priorities = priorities.substring(priorities.indexOf(' ')+1);
-					System.out.print(prio + " ");
-				}
-				System.out.println();			
+			int[] prefs = new int[n];
+			for(int i=0; i<n; i++){
+				int index1 = priorities.indexOf(' ');
+				
+				int prio = Integer.valueOf(priorities.substring(0, index1 == -1 ? priorities.length() : index1));
+				--prio; //0 indexed
+				priorities = priorities.substring(priorities.indexOf(' ')+1);
+				prefs[i] = prio;
+			}
+			people[p++].SetPreferences(prefs);
 		}
 		
 		scanner.close();
+		
+		for(int i=0; i<men.length; i++){
+			bros.add(men[i]);
+			chicks.add(women[i]);
+		}
 	}
 	
 	public void solve(){
 		while(!bros.isEmpty()){
 			Bro bro = bros.pop();
-			Chick chick = women.get(bro.getNextPrefered());
+			Chick chick = chicks.get(bro.getNextPrefered());
 			Bro divorcedBro = bro.ProposeTo(chick);
-			if(divorcedBro != null)
+			if(divorcedBro != null){
 				bros.push(divorcedBro);
+				engagedMen.remove(divorcedBro);
+			}
+			engagedMen.push(bro);
 		}
 	}
 	

@@ -1,6 +1,9 @@
+import java.util.Map;
+import java.util.HashMap;
+
 abstract class Person {
 	int[] preferences;
-	int[] invertedPreferences;
+	Map<Integer,Integer> invertedPreferences;
 	int nextPrefered = 0;
 	final int id;
 	final String name;
@@ -32,9 +35,9 @@ abstract class Person {
 
 	public void SetPreferences(int[] preferences) {
 		this.preferences = preferences;
-		invertedPreferences = new int[preferences.length];
+		invertedPreferences = new HashMap<Integer,Integer>();
 		for(int i=0; i<preferences.length; i++)
-			invertedPreferences[preferences[i]] = i;
+			invertedPreferences.put(preferences[i], i);
 	}
 }
 
@@ -50,11 +53,13 @@ class Chick extends Person {
 	}
 	
 	public Bro acceptPropose(Bro bro){
-		if(nextPrefered <= invertedPreferences[bro.getId()]){
-			nextPrefered = invertedPreferences[bro.getId()]+1;
+		if(nextPrefered <= invertedPreferences.get(bro.getId())){
+			nextPrefered = invertedPreferences.get(bro.getId())+1; //TODO Should this be minus
 			
 			Bro xBro = engagedTo;
-			divorce(engagedTo);
+			if(engagedTo != null){
+				divorce(engagedTo);
+			}
 			engagedTo = bro;
 			
 			return xBro;
