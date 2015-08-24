@@ -6,34 +6,35 @@ import java.util.Scanner;
 import java.util.Stack;
 
 public class StableMatching {
-	
+	private final String inFile;
 	Stack<Bro> bros = new Stack<>();
 	Stack<Bro> engagedMen = new Stack<>();
 	List<Chick> chicks = new ArrayList<>();
 	Stack<Chick> engagedWomen = new Stack<>();
 	//Person[] people;
-	
-	
+
+
 	public StableMatching(String path) throws Exception{
+		inFile = path;
 		File file = new File(path);
 		readData(file);
 	}
-	
+
 	public void readData(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
-		
+
 		//Skip the first lines of comments
 		String str;
 		while((str = scanner.nextLine()).startsWith("#"));
-		
+
 		str = str.substring(str.indexOf('=')+1);
 		int n = Integer.valueOf(str);
-		
+
 		Bro[] men = new Bro[n];
 		Chick[] women = new Chick[n];
 		//first field emtpy, indexed by ids from input
 		//people = new Person[n*2];
-		
+
 		while(!(str = scanner.nextLine()).isEmpty()){
 			int index = str.indexOf(" ");
 			int number = Integer.valueOf(str.substring(0, index)) -1;
@@ -47,7 +48,7 @@ public class StableMatching {
 				women[number/2] = chick;
 			}
 		}
-		
+
 		while(scanner.hasNextLine() && !(str = scanner.nextLine()).isEmpty()){
 			int person = str.indexOf(":");
 			int personIndex = Integer.valueOf(str.substring(0, person)) - 1;
@@ -55,7 +56,7 @@ public class StableMatching {
 			int[] prefs = new int[n];
 			for(int i=0; i<n; i++){
 				int index1 = priorities.indexOf(' ');
-				
+
 				int prio = Integer.valueOf(priorities.substring(0, index1 == -1 ? priorities.length() : index1));
 				--prio; //0 indexed
 				priorities = priorities.substring(priorities.indexOf(' ')+1);
@@ -66,15 +67,15 @@ public class StableMatching {
 			else 
 				women[personIndex/2].SetPreferences(prefs);
 		}
-		
+
 		scanner.close();
-		
+
 		for(int i=0; i<men.length; i++){
 			bros.add(men[i]);
 			chicks.add(women[i]);
 		}
 	}
-	
+
 	public void solve(){
 		while(!bros.isEmpty()){
 			Bro bro = bros.pop();
@@ -84,25 +85,62 @@ public class StableMatching {
 				engagedMen.push(bro);
 			} else
 				bros.push(bro);
-			
+
 			if(divorcedBro != null){
 				bros.push(divorcedBro);
 				engagedMen.remove(divorcedBro);
 			} 
 		}
 	}
-	
-	public void printResult(){
+
+	/*public void printResult(){
 		while(!engagedMen.isEmpty())
 			System.out.println(engagedMen.pop().getMarriageString());
+	}*/
+
+	public void compareResults() throws FileNotFoundException{
+		List<String> in = new ArrayList<>();
+		List<String> out = new ArrayList<>();
+		while(!engagedMen.isEmpty())
+			in.add(engagedMen.pop().getMarriageString());
+		
+		String outFile = getOutFilePath();
+		Scanner scanner = new Scanner(new File(outFile));
+		while(scanner.hasNextLine()){
+			String line = scanner.nextLine();
+			if(!line.isEmpty()){
+				out.add(line);			
+			}
+		}
+		scanner.close();
+		
+		System.out.println("Results:");
+		int flaws = 0;
+		for(int i=0; i<in.size(); i++){
+			if(!out.contains(in.get(i))){
+				flaws++;
+			}
+			System.out.println(in.get(i));
+		}
+		
+		System.out.println("\nFlaws: " + flaws);
 	}
 	
+	public String getOutFilePath(){
+		int index = inFile.lastIndexOf("in");
+		String outFile = inFile.substring(0, index);
+		outFile += "out";
+		outFile += inFile.substring(index+2);
+		return outFile;
+	}
+
 	public static void main(String[] args) throws Exception{
-		String filepath = args.length == 0 ? "input/sm-bbt-in.txt" : args[0];
+		String filepath = args.length == 0 ? "input/sm-worst-500-in.txt" : args[0];
 		StableMatching sm = new StableMatching(filepath);
 		sm.solve();
-		sm.printResult();
-		
+		//sm.printResult();
+		sm.compareResults();
+
 	}
 
 }
