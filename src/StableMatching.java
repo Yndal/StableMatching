@@ -11,7 +11,7 @@ public class StableMatching {
 	Stack<Bro> engagedMen = new Stack<>();
 	List<Chick> chicks = new ArrayList<>();
 	Stack<Chick> engagedWomen = new Stack<>();
-	Person[] people;
+	//Person[] people;
 	
 	
 	public StableMatching(String path) throws Exception{
@@ -32,32 +32,27 @@ public class StableMatching {
 		Bro[] men = new Bro[n];
 		Chick[] women = new Chick[n];
 		//first field emtpy, indexed by ids from input
-		people = new Person[n*2];
+		//people = new Person[n*2];
 		
-		boolean man = true;
-		int menidx=0;
-		int womenidx=0;
 		while(!(str = scanner.nextLine()).isEmpty()){
 			int index = str.indexOf(" ");
 			int number = Integer.valueOf(str.substring(0, index)) -1;
 			String name = str.substring(index + 1);
 
-			if (man) {
+			if (number%2 == 0) {
 				Bro bro = new Bro(name, number);
-				men[menidx++] = bro;
-				people[number] = bro;
+				men[number/2] = bro;
+	//			people[number] = bro;
 			} else {
 				Chick chick = new Chick(name, number);
-				women[womenidx++] = chick;
-				people[number] = chick;
+				women[number/2] = chick;
+		//		people[number] = chick;
 			}
-			man = !man;
 		}
 		
-		int p = 0;
 		while(scanner.hasNextLine() && !(str = scanner.nextLine()).isEmpty()){
 			int person = str.indexOf(":");
-			//int personIndex = Integer.valueOf(str.substring(0, person));
+			int personIndex = Integer.valueOf(str.substring(0, person)) - 1;
 			String priorities = str.substring(str.indexOf(' ')+1);
 			int[] prefs = new int[n];
 			for(int i=0; i<n; i++){
@@ -66,9 +61,12 @@ public class StableMatching {
 				int prio = Integer.valueOf(priorities.substring(0, index1 == -1 ? priorities.length() : index1));
 				--prio; //0 indexed
 				priorities = priorities.substring(priorities.indexOf(' ')+1);
-				prefs[i] = prio;
+				prefs[i] = prio/2;
 			}
-			people[p++].SetPreferences(prefs);
+			if(personIndex % 2 == 0)
+				men[personIndex/2].SetPreferences(prefs);
+			else 
+				women[personIndex/2].SetPreferences(prefs);
 		}
 		
 		scanner.close();
@@ -82,7 +80,7 @@ public class StableMatching {
 	public void solve(){
 		while(!bros.isEmpty()){
 			Bro bro = bros.pop();
-			Chick chick = (Chick) people[bro.getNextPrefered()];
+			Chick chick = chicks.get(bro.getNextPrefered());
 			Bro divorcedBro = bro.ProposeTo(chick);
 			if(chick.engagedTo == bro){
 				engagedMen.push(bro);
@@ -102,7 +100,7 @@ public class StableMatching {
 	}
 	
 	public static void main(String[] args) throws Exception{
-		String filepath = "input/sm-bbt-in.txt";
+		String filepath = args.length == 0 ? "input/sm-bbt-in.txt" : args[0];
 		StableMatching sm = new StableMatching(filepath);
 		sm.solve();
 		sm.printResult();

@@ -42,8 +42,6 @@ abstract class Person {
 }
 
 class Chick extends Person {
-	Bro engagedTo;
-
 	public Chick(String name, int id, int[] preferences) {
 		super(name, id, preferences);
 	}
@@ -57,9 +55,11 @@ class Chick extends Person {
 			engagedTo = bro;
 
 			return null;
-		} else if(invertedPreferences.get(bro.getId()) < invertedPreferences.get(engagedTo.getId())){
-			Bro divorcedFellow = engagedTo;
-			engagedTo.divorceFrom(this);
+		} else if(invertedPreferences.get(bro.getId()) 
+				< invertedPreferences.get(
+						this.engagedTo.getId())){
+			Bro divorcedFellow = (Bro) engagedTo;
+			divorcedFellow.divorceFrom(this);
 			engagedTo = bro;
 
 			return divorcedFellow;
