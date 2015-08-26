@@ -6,7 +6,7 @@ import java.util.Scanner;
 import java.util.Stack;
 
 public class StableMatching {
-	private final String inFile;
+	private String inFile;
 	Stack<Bro> bros = new Stack<>();
 	Stack<Bro> engagedMen = new Stack<>();
 	List<Chick> chicks = new ArrayList<>();
@@ -103,7 +103,7 @@ public class StableMatching {
 		List<String> out = new ArrayList<>();
 		while(!engagedMen.isEmpty())
 			in.add(engagedMen.pop().getMarriageString());
-		
+
 		String outFile = getOutFilePath();
 		Scanner scanner = new Scanner(new File(outFile));
 		while(scanner.hasNextLine()){
@@ -113,19 +113,19 @@ public class StableMatching {
 			}
 		}
 		scanner.close();
-		
-		System.out.println("Results:");
+
+		//System.out.println("Results:");
 		int flaws = 0;
 		for(int i=0; i<in.size(); i++){
 			if(!out.contains(in.get(i))){
 				flaws++;
 			}
-			System.out.println(in.get(i));
+			//System.out.println(in.get(i));
 		}
-		
-		System.out.println("\nFlaws: " + flaws);
+
+		System.out.println("Flaws: " + flaws);
 	}
-	
+
 	public String getOutFilePath(){
 		int index = inFile.lastIndexOf("in");
 		String outFile = inFile.substring(0, index);
@@ -135,12 +135,28 @@ public class StableMatching {
 	}
 
 	public static void main(String[] args) throws Exception{
-		String filepath = args.length == 0 ? "input/sm-worst-500-in.txt" : args[0];
-		StableMatching sm = new StableMatching(filepath);
-		sm.solve();
-		//sm.printResult();
-		sm.compareResults();
+		if(args.length == 0){
+			String input = "input";
+			File folder = new File(input);
+			File[] files = folder.listFiles();
+			for(File file : files){
+				if(file.getName().contains("out"))
+					continue;
 
+				StableMatching sm = new StableMatching(input + "/" + file.getName());
+				sm.solve();
+				//sm.printResult();
+				System.out.print(file.getName() + ": ");
+				sm.compareResults();
+			} 
+		}else {
+			String file = args[0];
+			StableMatching sm = new StableMatching(file);
+			sm.solve();
+			//sm.printResult();
+			System.out.print(file + ": ");
+			sm.compareResults();
+		}
 	}
 
 }

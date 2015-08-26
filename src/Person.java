@@ -1,6 +1,3 @@
-import java.util.Map;
-import java.util.HashMap;
-
 abstract class Person {
 	int[] preferences;
 	int[] invertedPreferences;
