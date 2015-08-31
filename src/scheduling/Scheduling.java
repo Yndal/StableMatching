@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Stack;
 
+import stable_matching.GS;
+
 class Job {
 	private final int startTime;
 	private final int jobTime;
@@ -71,6 +73,11 @@ public class Scheduling {
 	private List<Job> unassignedJobs;
 	private Stack<Job> jobStack;
 	
+	
+	public Scheduling(String path){
+		this(new File(path));
+	}
+	
 	public Scheduling(File file){
 
 	}
@@ -113,7 +120,28 @@ public class Scheduling {
 	}
 	
 	public static void main(String[] args){
-		
+		if(args.length == 0){
+			String input = "input/scheduling";
+			File folder = new File(input);
+			File[] files = folder.listFiles();
+			for(File file : files){
+				if(file.getName().contains("out"))
+					continue;
+
+				Scheduling sch = new Scheduling(input + "/" + file.getName());
+				sch.solve();
+				sch.printSolution();
+				System.out.print(file.getName() + ": ");
+				//sm.compareResults();
+			} 
+		}else {
+			String file = args[0];
+			Scheduling sch = new Scheduling(file);
+			sch.solve();
+			sch.printSolution();
+			System.out.print(file + ": ");
+			//sm.compareResults();
+		}
 	}
 }
 
