@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -34,6 +35,11 @@ class Job {
 
 	public int getEndTime() {
 		return endTime;
+	}
+	
+	@Override
+	public String toString(){
+		return this.getStartTime() + " " + this.getEndTime() + " " + this.getResId();
 	}
 }
 
@@ -129,8 +135,37 @@ public class Scheduling {
 		System.out.println(resources.size() + "\n");
 		while(!jobStack.isEmpty()){
 			Job job = jobStack.poll();
-			System.out.println(job.getStartTime() + " " + job.getEndTime() + " " + job.getResId());
+			System.out.println(job);
 		}
+	}
+	
+	public void compareResult(){
+		List<String> in = new ArrayList<>();
+		List<String> out = new ArrayList<>();
+		Iterator<Job> it = jobStack.iterator();
+		while(!it.isEmpty())
+			in.add(engagedMen.pop().getMarriageString());
+
+		String outFile = getOutFilePath();
+		Scanner scanner = new Scanner(new File(outFile));
+		while(scanner.hasNextLine()){
+			String line = scanner.nextLine();
+			if(!line.isEmpty()){
+				out.add(line);			
+			}
+		}
+		scanner.close();
+
+		//System.out.println("Results:");
+		int flaws = 0;
+		for(int i=0; i<in.size(); i++){
+			if(!out.contains(in.get(i))){
+				flaws++;
+			}
+			//System.out.println(in.get(i));
+		}
+
+		System.out.println("Flaws: " + flaws);
 	}
 	
 	public static void main(String[] args) throws Exception{
@@ -146,7 +181,7 @@ public class Scheduling {
 				sch.solve();
 				sch.printSolution();
 				System.out.print(file.getName() + ": ");
-				//sm.compareResults();
+				sch.compareResults();
 			} 
 		}else {
 			String file = args[0];
@@ -154,7 +189,7 @@ public class Scheduling {
 			sch.solve();
 			sch.printSolution();
 			System.out.print(file + ": ");
-			//sm.compareResults();
+			sch.compareResults();
 		}
 	}
 }
