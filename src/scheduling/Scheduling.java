@@ -5,31 +5,35 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Stack;
 
 
 class Job {
-	private final int id;
+	private int resId;
 	private final int startTime;
-	private final int jobTime;
+	private final int endTime;
 
-	public Job(int start, int time, int id){
-		this.id = id;
+	public Job(int start, int time){
 		this.startTime = start;
-		this.jobTime = time;
+		this.endTime = time;
 	}
 
-	public int getId(){
-		return id;
+	public void setResId(int id){
+		this.resId = id;
+	}
+	public int getResId(){
+		return resId;
 	}
 	public int getStartTime() {
 		return startTime;
 	}
 
-	public int getJobTime() {
-		return jobTime;
+	public int getEndTime() {
+		return endTime;
 	}
 }
 
@@ -45,7 +49,7 @@ class Resource{
 	
 	public void addJob(Job job){
 		jobs.add(job);
-		currentEndTime += job.getJobTime();
+		currentEndTime = job.getEndTime();
 	}
 
 	public int getCurrentEndTime(){
@@ -64,14 +68,14 @@ public class Scheduling {
 			//Compare by starting time
 			if(j1.getStartTime() < j2.getStartTime())
 				return -1;
-			else if(j1.getStartTime() < j2.getStartTime())
+			else if(j1.getStartTime() > j2.getStartTime())
 				return 1;
 			else
 				return 0;
 		}
 	});
 	private List<Resource> resources;
-	private Stack<Job> jobStack;
+	private Queue<Job> jobStack;
 	
 	public Scheduling(String path) throws FileNotFoundException{
 		this(new File(path));
@@ -83,7 +87,7 @@ public class Scheduling {
 
 	private void readData(File file) throws FileNotFoundException{
 		resources = new ArrayList<>();
-		jobStack = new Stack<>();
+		jobStack = new LinkedList<>();
 		Scanner scan = new Scanner(file);
 		int n = scan.nextInt();
 		scan.nextLine();
@@ -91,7 +95,7 @@ public class Scheduling {
 		for (int i=0; i<n; i++) {
 			int start = scan.nextInt();
 			int end = scan.nextInt();
-			Job job = new Job(start, end, i);
+			Job job = new Job(start, end);
 			pq.add(job);
 			jobStack.add(job);
 		}
@@ -104,6 +108,7 @@ public class Scheduling {
 			for(int i=0; i<resources.size(); i++){
 				if(resources.get(i).getCurrentEndTime() <= job.getStartTime()){
 					resources.get(i).addJob(job);
+					job.setResId(i);
 					assigned = true;
 				}
 			}
@@ -113,6 +118,7 @@ public class Scheduling {
 				Resource res = new Resource();
 				resources.add(res);
 				res.addJob(job);
+				job.setResId(res.getResourceNumber());
 			}
 		}
 	}
@@ -122,8 +128,8 @@ public class Scheduling {
 	public void printSolution(){
 		System.out.println(resources.size() + "\n");
 		while(!jobStack.isEmpty()){
-			Job job = jobStack.pop();
-			System.out.println(job.getStartTime() + " " + job.getJobTime() + " " + job.getId());
+			Job job = jobStack.poll();
+			System.out.println(job.getStartTime() + " " + job.getEndTime() + " " + job.getResId());
 		}
 	}
 	
