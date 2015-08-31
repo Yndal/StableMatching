@@ -10,12 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.HashSet;
 
 
 class Job {
 	private int resId;
 	private final int startTime;
 	private final int endTime;
+	private int id;
 
 	public Job(int start, int time){
 		this.startTime = start;
@@ -34,6 +36,14 @@ class Job {
 
 	public int getEndTime() {
 		return endTime;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getId() {
+		return this.id;
 	}
 	
 	@Override
@@ -101,6 +111,7 @@ public class Scheduling {
 			int start = scan.nextInt();
 			int end = scan.nextInt();
 			Job job = new Job(start, end);
+			job.setId(i);
 			pq.add(job);
 			jobStack.add(job);
 		}
@@ -112,10 +123,11 @@ public class Scheduling {
 			Job job = pq.poll();
 			boolean assigned = false;
 			for(int i=0; i<resources.size(); i++){
-				if(resources.get(i).getCurrentEndTime() <= job.getStartTime()){
+				if(!assigned && resources.get(i).getCurrentEndTime() <= job.getStartTime()){
 					resources.get(i).addJob(job);
 					job.setResId(i);
 					assigned = true;
+					break;
 				}
 			}
 			
@@ -128,7 +140,7 @@ public class Scheduling {
 			}
 		}
 	}
-	
+
 	
 	//This method is not optimized as it is not an actual part of the running time ;-)
 	public void printSolution(){
@@ -140,7 +152,11 @@ public class Scheduling {
 	}
 	
 	public void compareResult(File compareFile) throws FileNotFoundException{
-		Iterator<Job> jobs = jobStack.iterator();
+		HashSet<String> resultSet = new HashSet<String>();
+		
+		for (Job j : jobStack) {
+			resultSet.add(j.toString());
+		}
 		
 		Scanner scan = new Scanner(compareFile);
 		int resCount = scan.nextInt();
@@ -151,14 +167,15 @@ public class Scheduling {
 		}
 
 		boolean isGood = true;
-		while(scan.hasNextLine()) {
+		while(scan.hasNextInt()) {
 			int start = scan.nextInt();
 			int end = scan.nextInt();
 			int resId = scan.nextInt();
 			Job resultJob = new Job(start, end);
 			resultJob.setResId(resId);
-			System.out.println(resultJob.toString());
-			if (!resultJob.toString().equals(jobs.next().toString())) {
+
+			if (!resultSet.contains(resultJob.toString())) {
+				System.out.println(resultJob.toString());
 				isGood = false;
 				break;
 			}
@@ -184,7 +201,7 @@ public class Scheduling {
 				sch.solve();
 				//sch.printSolution();
 				System.out.print(file.getName() + ": ");
-				File outputFile = new File(input + "/" + file.getName().replaceAll(".in", ".out"));
+				File outputFile = new File(input + "/" + file.getName().replaceAll("\\.in", ".out"));
 				sch.compareResult(outputFile);
 			} 
 		} else{
@@ -192,8 +209,8 @@ public class Scheduling {
 			Scheduling sch = new Scheduling(filePath);
 			sch.solve();
 			//sch.printSolution();
-			System.out.print(filePath + ": ");
-			sch.compareResult(new File(filePath.replaceAll(".in", ".out")));
+			System.out.println(filePath + ": ");
+			sch.compareResult(new File(filePath.replaceAll("\\.in", ".out")));
 		}
 	}
 }
