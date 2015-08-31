@@ -10,7 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Stack;
 
 
 class Job {
@@ -105,6 +104,7 @@ public class Scheduling {
 			pq.add(job);
 			jobStack.add(job);
 		}
+		scan.close();
 	}
 
 	public void solve(){
@@ -139,33 +139,36 @@ public class Scheduling {
 		}
 	}
 	
-	public void compareResult(){
-		List<String> in = new ArrayList<>();
-		List<String> out = new ArrayList<>();
-		Iterator<Job> it = jobStack.iterator();
-		while(!it.isEmpty())
-			in.add(engagedMen.pop().getMarriageString());
-
-		String outFile = getOutFilePath();
-		Scanner scanner = new Scanner(new File(outFile));
-		while(scanner.hasNextLine()){
-			String line = scanner.nextLine();
-			if(!line.isEmpty()){
-				out.add(line);			
-			}
-		}
-		scanner.close();
-
-		//System.out.println("Results:");
-		int flaws = 0;
-		for(int i=0; i<in.size(); i++){
-			if(!out.contains(in.get(i))){
-				flaws++;
-			}
-			//System.out.println(in.get(i));
+	public void compareResult(File compareFile) throws FileNotFoundException{
+		Iterator<Job> jobs = jobStack.iterator();
+		
+		Scanner scan = new Scanner(compareFile);
+		int resCount = scan.nextInt();
+		if (resources.size() != resCount) {
+			System.out.println("BAD: " + resCount + " <> " + resources.size());
+			scan.close();
+			return;
 		}
 
-		System.out.println("Flaws: " + flaws);
+		boolean isGood = true;
+		while(scan.hasNextLine()) {
+			int start = scan.nextInt();
+			int end = scan.nextInt();
+			int resId = scan.nextInt();
+			Job resultJob = new Job(start, end);
+			resultJob.setResId(resId);
+			System.out.println(resultJob.toString());
+			if (!resultJob.toString().equals(jobs.next().toString())) {
+				isGood = false;
+				break;
+			}
+		}
+		scan.close();
+		if (isGood) {
+			System.out.println("OK: " + compareFile.getName());
+		} else {
+			System.out.println("BAD: " + compareFile.getName());
+		}
 	}
 	
 	public static void main(String[] args) throws Exception{
@@ -179,17 +182,18 @@ public class Scheduling {
 
 				Scheduling sch = new Scheduling(input + "/" + file.getName());
 				sch.solve();
-				sch.printSolution();
+				//sch.printSolution();
 				System.out.print(file.getName() + ": ");
-				sch.compareResults();
+				File outputFile = new File(input + "/" + file.getName().replaceAll(".in", ".out"));
+				sch.compareResult(outputFile);
 			} 
-		}else {
-			String file = args[0];
-			Scheduling sch = new Scheduling(file);
+		} else{
+			String filePath = args[0];
+			Scheduling sch = new Scheduling(filePath);
 			sch.solve();
-			sch.printSolution();
-			System.out.print(file + ": ");
-			sch.compareResults();
+			//sch.printSolution();
+			System.out.print(filePath + ": ");
+			sch.compareResult(new File(filePath.replaceAll(".in", ".out")));
 		}
 	}
 }
