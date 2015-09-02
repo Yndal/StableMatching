@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.HashSet;
-import java.util.Iterator;
-
 
 class Job {
 	private int resId;
@@ -103,6 +101,7 @@ public class Scheduling {
 		}
 
 	});
+	
 	private Queue<Job> jobStack;
 
 	public Scheduling(String path) throws FileNotFoundException{
@@ -124,7 +123,6 @@ public class Scheduling {
 			int end = scan.nextInt();
 
 			Job job = new Job(start, end);
-			//	job.setId(i);
 			pq.add(job);
 			jobStack.add(job);
 		}
@@ -180,50 +178,10 @@ public class Scheduling {
 			return false;
 		}
 
-		return true;
-
-		/*boolean isGood = true;
-		int counter = 0;
-		while(scan.hasNextLine()) {
-			String line = scan.nextLine().toLowerCase().trim();
-			if(line.isEmpty())
-				continue;
-			if(!resultSet.contains(line)){
-				//System.out.println("Not found in result: " + line);
-
-				Iterator<String> it = resultSet.iterator();
-				while(it.hasNext()){
-					String s = it.next();
-					String ss = line.substring(0, line.lastIndexOf(" "));
-					if(s.startsWith(ss))
-						System.out.println("our: " + s + "\nread: " + line + "\n");
-
-				}
-
-				isGood = false;
-				counter++;
-				//break;
-			};
-
-		}
-
-		if (isGood) {
-			System.out.println("OK: " + compareFile.getName());
-		} else {
-			System.out.println("BAD: " + compareFile.getName() + "( flaws: " + counter + ")");
-		}*/
-
-
+		return true;	
 	}
 
 	public static void main(String[] args) throws Exception{
-		//		String input = "input/scheduling/";
-		//		String filePath = input + "ip-rand-1k.in";
-		//		Scheduling sch = new Scheduling(filePath);
-		//		sch.solve();
-		//		//sch.printSolution();
-		//		System.out.println(filePath + ": ");
-		//		sch.compareResult(new File(filePath.substring(0,filePath.lastIndexOf(".")) + ".out"));
 		if(args.length == 0){
 			String input = "input/scheduling";
 			File folder = new File(input);
