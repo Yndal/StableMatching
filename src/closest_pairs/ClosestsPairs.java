@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,39 +44,67 @@ public class ClosestsPairs {
 		}
 
 		public double getY(){
-			return y;
+			return y; 
 		}
 	}
+	
+	private static final double DIST_RESULT_MAX_DELTA = 0.000001;
+	
+	private HashMap<String, Double> results = new HashMap<>();
+	private Pair<Point,Point> result;
+	private String setName;
 
 	private List<Point> pxOrig = new ArrayList<>();
 	private List<Point> pyOrig = new ArrayList<>();
 
 
 
-	public ClosestsPairs(String path) throws FileNotFoundException{
-		this(new File(path));
+	public ClosestsPairs(String resultPath) throws FileNotFoundException{
+		this(new File(resultPath));
 	}
 
-	public ClosestsPairs(File f) throws FileNotFoundException{
-		readData(f);
+	public ClosestsPairs(File resultFile) throws FileNotFoundException{
+		loadResults(resultFile);
+	}
+	
+	private void loadResults(File file) throws FileNotFoundException{
+		results = new HashMap<>();
+		
+		Scanner scanner = new Scanner(file);
+		String s;
+		while(scanner.hasNextLine()){
+			s = scanner.nextLine();
+			
+			//Remove ../data/
+			s = s.substring(s.lastIndexOf("/")+1);
+			String[] ss = s.trim().split(" ");
+			
+			try{
+				String name = ss[0].substring(0, ss[0].indexOf("."));
+				//double pointsInFile = Double.valueOf(ss[1]);
+				double shortestDistance = Double.valueOf(ss[2]);
+				results.put(name, shortestDistance);
+			} catch (NumberFormatException e){
+				//Shhiiaat
+				System.out.println("Unable to parse result: " + s);
+			}
+		}
+		scanner.close();
 	}
 
-	private void readData(File file) throws FileNotFoundException{
-		/*Point p1 = new Point("far",0,0);
-		Point p2 = new Point("romeo",0,10);
-		Point p3 = new Point("juliet",0,11);
-		Point p4 = new Point("far",0,20);
-
-		pxOrig.add(p1);
-		pxOrig.add(p2);
-		pxOrig.add(p3);
-		pxOrig.add(p4);
-
-		pyOrig.add(p1);
-		pyOrig.add(p2);
-		pyOrig.add(p3);
-		pyOrig.add(p4);*/
-
+	public void readData(File file) throws FileNotFoundException{
+		//Clear potential old data
+		result = null;
+		setName = null;
+		pxOrig.clear();
+		pyOrig.clear();
+		
+		//Get name of set
+		String name = file.getName();
+		name = name.substring(0, name.indexOf("-"));
+		setName = name;
+		
+		//Read input from file
 		Scanner scan = new Scanner(file);
 		String s;
 		do{
@@ -101,9 +130,9 @@ public class ClosestsPairs {
 				Point point = new Point(label,dx,dy);
 				pxOrig.add(point);
 				pyOrig.add(point);
-				System.out.println("Adding: " + label + " (" + dx + "; " + dy + ")");
+			//	System.out.println("Adding: " + label + " (" + dx + "; " + dy + ")");
 			} catch (NumberFormatException e){
-				System.out.println("Ignoring: " + s);
+			//	System.out.println("Ignoring: " + s);
 				//Well... this line didn't parse, so we'll just ignore it...
 				continue;
 			}			
@@ -141,7 +170,8 @@ public class ClosestsPairs {
 		});
 
 		Pair<Point, Point> closestsPair = closestsPairRec(pxOrig, pyOrig);
-
+		result = closestsPair;
+		
 		return closestsPair;
 	}
 
@@ -225,33 +255,54 @@ public class ClosestsPairs {
 			return rightPair;
 	}
 
-
-
-
+	public boolean printResult(){
+		System.out.print("Result for " + setName + ": \t");
+		if(!results.containsKey(setName)){
+			System.out.println("Result not provided...");
+			return true;
+		}
+		
+		double actResult = results.get(setName);
+		double ourResult = result.getKey().getDistance(result.getValue());
+		
+		if(Math.abs(actResult - ourResult) < DIST_RESULT_MAX_DELTA){
+			System.out.println("Correct");
+			return true;
+		} else {
+			System.out.println("Fail: Dist is " + actResult + " vs " + ourResult);
+			
+			return false;
+		}
+	}
 
 	public static void main(String[] args) throws Exception {
+		String resultPath = "input/closest_pairs/closest-pair-out.txt";
+		ClosestsPairs cp = new ClosestsPairs(resultPath);
+		
+		//args = new String[]{"berlin52-tsp.txt"};
+		String input = "input/closest_pairs";
+		
 		if(args.length == 0){
-			String input = "input/closest_pairs";
 			File folder = new File(input);
 			File[] files = folder.listFiles();
+			int failCounter = 0;
+			int fileCounter = files.length;
 			for(File file : files){
-				if(file.getName().contains("out"))
+				if(file.getName().contains("out")){
+					fileCounter--;
 					continue;
+				}
 
-				ClosestsPairs cp = new ClosestsPairs(input + "/" + file.getName());
+				cp.readData(file);//new File(input + "/" + file.getName()));
 				cp.solve();
-				//cp.printSolution();
-				//System.out.print(file.getName() + " is ok? ");
-				File outputFile = new File(input + "/" + file.getName().replaceAll("\\.in", ".out"));
-				//		System.out.println(cp.compareResult(outputFile));
+				if(!cp.printResult())
+					failCounter++;				
 			} 
+			System.out.println("Fails: " + failCounter + "/" + fileCounter);
 		} else{
-			String filePath = args[0];
-			ClosestsPairs cp = new ClosestsPairs(filePath);
+			cp.readData(new File(input + "/" + args[0]));
 			cp.solve();
-			//cp.printSolution();
-			//System.out.print(filePath + " is ok? ");
-			//	System.out.println(cp.compareResult(new File(filePath.replaceAll("\\.in", ".out"))));
+			cp.printResult();	
 		}
 
 	}
