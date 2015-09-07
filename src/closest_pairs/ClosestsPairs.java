@@ -205,13 +205,14 @@ public class ClosestsPairs {
 		double closestWithinDeltaDist = Double.MAX_VALUE;
 		for(int i=0; i<S.size(); i++){
 			for(int j=i+1; j<i+(15+1); j++){
+				if(j >= S.size())
+					break;
+				
 				double d = S.get(i).getDistance(S.get(j));
 				if(d<closestWithinDeltaDist){
+					closestWithinDeltaDist = d;
 					closestWithinDelta = new Pair<Point,Point>(S.get(i), S.get(j));
 				}
-				
-				if(j+1 >= S.size())
-					break;
 			}
 		}
 		
