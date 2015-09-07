@@ -17,7 +17,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import javafx.util.Pair;
-import scheduling.Scheduling;
 
 public class ClosestsPairs {
 	private class Point{
@@ -223,6 +222,7 @@ public class ClosestsPairs {
 
 					double dist = p1.getDistance(p2);
 					if(dist < distAB){
+						distAB = dist;
 						pA = p1;
 						pB = p2;
 					}
@@ -259,7 +259,7 @@ public class ClosestsPairs {
 		double L = Qx.get(Qx.size()-1).getX();
 
 		List<Point> S = new ArrayList<>();
-		for(Point p : py)
+		for(Point p : px)
 			if(Math.abs(L-p.getX()) < delta)
 				S.add(p);
 
@@ -326,16 +326,16 @@ public class ClosestsPairs {
 				}
 
 				cp.readData(file);//new File(input + "/" + file.getName()));
-				//cp.solve();
-				cp.solveBruteForce();
+				cp.solve();
+				//cp.solveBruteForce();
 				if(!cp.printResult())
 					failCounter++;				
 			} 
 			System.out.println("\nFails: " + failCounter + "/" + fileCounter + "\n(Computations lacking a result are not considered as fails)");
 		} else{
 			cp.readData(new File(input + "/" + args[0]));
-			//cp.solve();
-			cp.solveBruteForce();
+			cp.solve();
+			//cp.solveBruteForce();
 			cp.printResult();	
 		}
 
