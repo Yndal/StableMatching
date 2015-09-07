@@ -6,5 +6,4 @@ public class ClosestsPoints {
 		// TODO Auto-generated method stub
 
 	}
-
 }
