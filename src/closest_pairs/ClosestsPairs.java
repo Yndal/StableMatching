@@ -51,9 +51,10 @@ public class ClosestsPairs {
 	private static final double DIST_RESULT_MAX_DELTA = 0.000001;
 	
 	private HashMap<String, Double> results = new HashMap<>();
+	private HashMap<String, Integer> results_points = new HashMap<>();
 	private Pair<Point,Point> result;
 	private String setName;
-
+	
 	private List<Point> pxOrig = new ArrayList<>();
 	private List<Point> pyOrig = new ArrayList<>();
 
@@ -81,9 +82,10 @@ public class ClosestsPairs {
 			
 			try{
 				String name = ss[0].substring(0, ss[0].indexOf("."));
-				//double pointsInFile = Double.valueOf(ss[1]);
+				int pointsInFile = Integer.valueOf(ss[1]);
 				double shortestDistance = Double.valueOf(ss[2]);
 				results.put(name, shortestDistance);
+				results_points.put(name, pointsInFile);
 			} catch (NumberFormatException e){
 				//Shhiiaat
 				System.out.println("Unable to parse result: " + s);
@@ -269,7 +271,7 @@ public class ClosestsPairs {
 			System.out.println("Correct");
 			return true;
 		} else {
-			System.out.println("Fail: Dist is " + actResult + " vs " + ourResult);
+			System.out.println("Fail: Dist is " + actResult + " vs " + ourResult + "(Points " + results_points.get(setName) + " vs " + pxOrig.size() + ")");
 			
 			return false;
 		}
@@ -279,7 +281,7 @@ public class ClosestsPairs {
 		String resultPath = "input/closest_pairs/closest-pair-out.txt";
 		ClosestsPairs cp = new ClosestsPairs(resultPath);
 		
-		//args = new String[]{"berlin52-tsp.txt"};
+		//args = new String[]{"d198-tsp.txt"};
 		String input = "input/closest_pairs";
 		
 		if(args.length == 0){
@@ -298,7 +300,7 @@ public class ClosestsPairs {
 				if(!cp.printResult())
 					failCounter++;				
 			} 
-			System.out.println("Fails: " + failCounter + "/" + fileCounter);
+			System.out.println("\nFails: " + failCounter + "/" + fileCounter + "\n(Computations lacking a result are not considered as fails)");
 		} else{
 			cp.readData(new File(input + "/" + args[0]));
 			cp.solve();
