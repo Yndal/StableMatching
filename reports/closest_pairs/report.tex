@@ -15,14 +15,14 @@
 \maketitle
 
 \section{Results}
-Addison--Wesley 2005. Our implementation
+Our implementation
 produces the correct result, for all of the provided input/output examples
 (\texttt{closest-pair-out.txt}). The of calculated results, and given
 example outputs, is made when the program is run without parameters.
 
 \section{Implementation}
 The implementation follows the pseudo code from page 230 in Kleinberg and
-Tardos, \emph{Algorithms Design} closely.
+Tardos, \emph{Algorithms Design} Addison--Wesley 2005 closely.
 
 For input sizes $n \leq 3$, we run a naive, pairwise $O(n^2)$ comparison algorithm.
 For larger inputs, we recursively divide the plane into two parts, each with
