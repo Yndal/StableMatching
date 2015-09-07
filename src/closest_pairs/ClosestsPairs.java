@@ -265,7 +265,7 @@ public class ClosestsPairs {
 		double actResult = results.get(setName);
 		double ourResult = result.getKey().getDistance(result.getValue());
 		
-		if(Double.compare(actResult, ourResult)){//Math.abs(actResult - ourResult) < DIST_RESULT_MAX_DELTA){
+		if(Math.abs(actResult - ourResult) < DIST_RESULT_MAX_DELTA){
 			System.out.println("Correct");
 			return true;
 		} else {
