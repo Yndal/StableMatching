@@ -141,8 +141,38 @@ public class ClosestsPairs {
 		} while (scan.hasNextLine());
 
 		scan.close();
+		
+		/*
+		for (Point p : pxOrig){
+			System.out.println(p.getX() + ", " + p.getY());
+		}
+		*/
 	}
 
+	//Yes, yes - n², but just to check
+	public Pair<Point, Point> solveBruteForce() {
+		Point pA = null;
+		Point pB = null;
+		double distAB = Double.MAX_VALUE;
+		for (int i=0; i< pxOrig.size(); i++) {
+			for (int j=i+1; j<pxOrig.size(); j++) {
+				Point p1 = pxOrig.get(i);
+				Point p2 = pxOrig.get(j);
+				double dist = p1.getDistance(p2);
+				if (dist < distAB) {
+					pA = p1;
+					pB = p2;
+					distAB = dist;
+				}
+			}
+		}
+		
+		Pair<Point, Point> closestsPair = new Pair<Point, Point>(pA, pB);
+		result = closestsPair;
+		
+		return closestsPair;		
+	}
+	
 	public Pair<Point,Point> solve(){
 		Collections.sort(pxOrig, new Comparator<Point>() {
 			@Override
@@ -296,14 +326,16 @@ public class ClosestsPairs {
 				}
 
 				cp.readData(file);//new File(input + "/" + file.getName()));
-				cp.solve();
+				//cp.solve();
+				cp.solveBruteForce();
 				if(!cp.printResult())
 					failCounter++;				
 			} 
 			System.out.println("\nFails: " + failCounter + "/" + fileCounter + "\n(Computations lacking a result are not considered as fails)");
 		} else{
 			cp.readData(new File(input + "/" + args[0]));
-			cp.solve();
+			//cp.solve();
+			cp.solveBruteForce();
 			cp.printResult();	
 		}
 
