@@ -9,51 +9,60 @@
 
 
 \title{Closest Pair Report}
-\author{Alice Cooper and Bob Marley}
+\author{Sigurt Dinesen, Gustav Røder \& Lars Yndal Sørensen}
 
 \begin{document}
-  \maketitle
+\maketitle
 
-  \section{Results}
+\section{Results}
+Addison--Wesley 2005. Our implementation
+produces the correct result, for all of the provided input/output examples
+(\texttt{closest-pair-out.txt}). The of calculated results, and given
+example outputs, is made when the program is run without parameters.
 
-  Our implementation produces the expected results on all input--output file pairs, except {\tt slotermeier-23-tsp.txt}, where our code reports distance 2.531 as the shortest distance.
-  This may be because of rounding errors, or differences between {\tt float} and {\tt double} on various machines.
-  \sidenote{%
-  Complete the report by filling in your correct names,
-  filling in the parts marked $[\ldots]$,
-  and changing other parts wherever necessary.
-  For instance, if your implementation passes all tests, then write that.
-  Remove the sidenotes in your final hand-in.
-  }
+\section{Implementation}
+The implementation follows the pseudo code from page 230 in Kleinberg and
+Tardos, \emph{Algorithms Design} closely.
 
-  The following table shows the closest pairs in the input files {\tt wc-instance-*.txt}.
-  Here $n$ denotes the number of points in the input,
-  and $(u,v)$ denotes a closest pair of points at distance $\delta$.
+For input sizes $n \leq 3$, we run a naive, pairwise $O(n^2)$ comparison algorithm.
+For larger inputs, we recursively divide the plane into two parts, each with
+$n/2 \pm 1$ points and find the closest point-pair in the left half, the right
+half and the pairs who's connecting edges cross the partition -- the result of
+course, being  The recursive
+function has a cutoff to the $O(n^2)$ solution, as mentioned above.
 
-  \bigskip\noindent
-  \begin{tabular}{rrrr}\toprule
-    $n$ & $u$ & $v$ & $\delta$ \\\midrule
-    2 & 0 & 1 & 1 \\
-    $[\ldots]$ \\\bottomrule
-  \end{tabular}
+\subsection{Performance}
+The running time is $n \log(n)$. This is illustrated in the following, by use of
+the \texttt{master theorem}.
 
+The running time is an instance of the equation
+$$T(n) = a T\left(\frac{n}{b}\right) + f\left(n\right)$$
+Which means we can analyse it using the \texttt{master theorem}:
+As we recursively divide the input into two parts of $O(n/2)$ size, we have
+$a=b=2$ in the above equation, which gives us
+$$k = \log_b(a) = \log_2(2) = 1$$
 
-  \section{Implementation details}
+At each level of recursion:
+\begin{itemize}
+	\item The four lists (named \texttt{Q\_x, Q\_y, R\_x, and R\_y} in both
+		the book and our implementation) containing the points of each
+		partition, in increasing order by $x$ and $y$ coordinate
+		respectively, are constructed at $O(n)$ cost.
 
-  We resort by $y$-coordinates in each recursive step.
+	\item The set of points within $\delta$ distance of the partitioning
+		line is found at $O(n)$ cost.
 
-  For the comparison of points close to $s$ in $S_y$ we inspect 15 points,
-  as explained (5.10) of Kleinberg and Tardos, \emph{Algorithm Design}, Addison--Wesley 2008.
-  Here is the corresponding part of our code:
-  \begin{verbatim}
-    min = [...]
-    for (s [...]
-      for [...]
-        if (s.distance(...) < min) [...]
-  \end{verbatim}
+	\item Each point in that set is compared to the 15 following points, at
+		$O(n*15) \in O(n)$ cost.
+\end{itemize}
+In summary: $f\left(n\right) \in O(n)$
 
-  Our running time is $O(n\log n)$ for $n$ points.
-  \sidenote{Change or delete as necessary, add anything else you find interesting about your implemenation.}
+Returning to the \texttt{master theorem}, we observe that as $n = n^1 = n^k$:
+$$f(n) \in O\left(n^k \log^0(n)\right)$$
 
-
+which, according to the \texttt{master theorem}, means that the recursive algorithm runs
+in $$O\left(n \log(n)\right)$$
+Before the recursion, the input is ordered by both $x$ and $y$ coordinates,
+giving $O(n \log(n))$ preprocessing cost, which leaves the total running time as
+$$O\left(n \log(n)\right)$$
 \end{document}
