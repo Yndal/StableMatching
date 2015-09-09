@@ -18,7 +18,7 @@
 Our implementation
 produces the correct result, for all of the provided input/output examples
 (\texttt{closest-pair-out.txt}). The calculated results, and given
-example outputs, are compared when the program is run without parameters.
+example outputs, are compared when the program is run.
 
 \section{Implementation}
 The implementation follows the pseudo code from page 230 in \emph{Kleinberg and
@@ -42,7 +42,7 @@ considered to be constant time.
 The running time is $n \log(n)$. This is illustrated in the following, by use of
 the \texttt{master theorem}.
 
-The running time is an instance of the equation
+The running time is an instance of the recurrence relation
 $$T(n) = a T\left(\frac{n}{b}\right) + f\left(n\right)$$
 Which means we can analyse it using the \texttt{master theorem}:
 As we recursively divide the input into two parts of $O(n/2)$ size, we have
