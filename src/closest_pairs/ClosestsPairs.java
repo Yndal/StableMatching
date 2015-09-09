@@ -45,6 +45,11 @@ public class ClosestsPairs {
 		public double getY(){
 			return y; 
 		}
+
+		@Override
+		public String toString() {
+			return label + ": (" + x + "," + y + ")";
+		}
 	}
 	
 	private static final double DIST_RESULT_MAX_DELTA = 0.000001;
@@ -149,14 +154,14 @@ public class ClosestsPairs {
 	}
 
 	//Yes, yes - n², but just to check
-	public Pair<Point, Point> solveBruteForce() {
+	public Pair<Point, Point> solveBruteForce(List<Point> p) {
 		Point pA = null;
 		Point pB = null;
 		double distAB = Double.MAX_VALUE;
-		for (int i=0; i< pxOrig.size(); i++) {
-			for (int j=i+1; j<pxOrig.size(); j++) {
-				Point p1 = pxOrig.get(i);
-				Point p2 = pxOrig.get(j);
+		for (int i=0; i< p.size(); i++) {
+			for (int j=i+1; j<p.size(); j++) {
+				Point p1 = p.get(i);
+				Point p2 = p.get(j);
 				double dist = p1.getDistance(p2);
 				if (dist < distAB) {
 					pA = p1;
@@ -202,34 +207,14 @@ public class ClosestsPairs {
 
 		Pair<Point, Point> closestsPair = closestsPairRec(pxOrig, pyOrig);
 		result = closestsPair;
-		
+
 		return closestsPair;
 	}
 
 	private Pair<Point, Point> closestsPairRec(List<Point> px, List<Point> py){
 		// n^2 solution for n <= 3 (Is constant O(3^2))
 		if(px.size() <= 3){
-			Point pA = null;
-			Point pB = null;
-			double distAB = Double.MAX_VALUE;
-			for(int i=0; i<px.size(); i++){
-				for(int j=0; j<py.size(); j++){
-					if(i==j)
-						continue;
-
-					Point p1 = px.get(i);
-					Point p2 = px.get(j);
-
-					double dist = p1.getDistance(p2);
-					if(dist < distAB){
-						distAB = dist;
-						pA = p1;
-						pB = p2;
-					}
-				}
-			}
-
-			return new Pair<Point,Point>(pA, pB);
+			return solveBruteForce(px);
 		}
 
 		//Partition the plane
@@ -241,9 +226,17 @@ public class ClosestsPairs {
 		for (int i = 0; i< px.size(); i++){
 			if (i < lineIdx){
 				Qx.add(px.get(i));
-				Qy.add(py.get(i));
 			} else {
 				Rx.add(px.get(i));
+			}
+		}
+
+		double L = Qx.get(Qx.size()-1).getX();
+
+		for (int i = 0; i< py.size(); i++){
+			if (py.get(i).getX() < L){
+				Qy.add(py.get(i));
+			} else {
 				Ry.add(py.get(i));
 			}
 		}
@@ -256,20 +249,20 @@ public class ClosestsPairs {
 		double rightDist = rightPair.getKey().getDistance(rightPair.getValue());
 		double delta = Math.min(leftDist, rightDist);
 
-		double L = Qx.get(Qx.size()-1).getX();
 
 		List<Point> S = new ArrayList<>();
-		for(Point p : px)
+		for(Point p : py)
 			if(Math.abs(L-p.getX()) < delta)
 				S.add(p);
 
 		//Closest pair within the 15 positions
 		Pair<Point, Point> closestWithinDelta = null;
-		double closestWithinDeltaDist = Double.MAX_VALUE;
+		double closestWithinDeltaDist = delta;
 		for(int i=0; i<S.size(); i++){
 			for(int j=i+1; j<i+(15+1); j++){
-				if(j >= S.size())
+				if(j == S.size()){
 					break;
+				}
 
 				double d = S.get(i).getDistance(S.get(j));
 				if(d<closestWithinDeltaDist){
@@ -279,12 +272,14 @@ public class ClosestsPairs {
 			}
 		}
 
-		if(closestWithinDeltaDist < delta)
+		if(closestWithinDeltaDist < delta){
 			return closestWithinDelta;
-		else if(leftDist < rightDist)
+		}
+		else if(leftDist < rightDist){
 			return leftPair;
-		else
+		}else{
 			return rightPair;
+		}
 	}
 
 	public boolean printResult(){
@@ -298,10 +293,11 @@ public class ClosestsPairs {
 		double ourResult = result.getKey().getDistance(result.getValue());
 		
 		if(Math.abs(actResult - ourResult) < DIST_RESULT_MAX_DELTA){
-			System.out.println("Correct");
+			//System.out.println("Correct");
+			System.out.println("Correctemundo: Dist is " + actResult + " vs " + ourResult + "(Points " + results_points.get(setName) + " vs " + pxOrig.size() + ")" + " Pair was " + result.getKey().getLabel() + " - " + result.getValue().getLabel());
 			return true;
 		} else {
-			System.out.println("Fail: Dist is " + actResult + " vs " + ourResult + "(Points " + results_points.get(setName) + " vs " + pxOrig.size() + ")");
+			System.out.println("Fail: Dist is " + actResult + " vs " + ourResult + "(Points " + results_points.get(setName) + " vs " + pxOrig.size() + ")" + " Pair was " + result.getKey().getLabel() + " - " + result.getValue().getLabel());
 			
 			return false;
 		}
@@ -311,7 +307,7 @@ public class ClosestsPairs {
 		String resultPath = "input/closest_pairs/closest-pair-out.txt";
 		ClosestsPairs cp = new ClosestsPairs(resultPath);
 		
-		//args = new String[]{"d198-tsp.txt"};
+		//args = new String[]{"d2103-tsp.txt"};
 		String input = "input/closest_pairs";
 		
 		if(args.length == 0){
@@ -327,7 +323,7 @@ public class ClosestsPairs {
 
 				cp.readData(file);//new File(input + "/" + file.getName()));
 				cp.solve();
-				//cp.solveBruteForce();
+				//cp.solveBruteForce(cp.pxOrig);
 				if(!cp.printResult())
 					failCounter++;				
 			} 
@@ -335,9 +331,17 @@ public class ClosestsPairs {
 		} else{
 			cp.readData(new File(input + "/" + args[0]));
 			cp.solve();
-			//cp.solveBruteForce();
+			//cp.solveBruteForce(cp.pxOrig);
 			cp.printResult();	
 		}
 
+	}
+	public static String pairToString(Pair<Point, Point> p){
+		if (null==p) {
+			return "null";
+		}
+		Point p1 = p.getKey();
+		Point p2 = p.getValue();
+		return p1.toString() + " - " +p2.toString();
 	}
 }
