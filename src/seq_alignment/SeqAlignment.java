@@ -30,11 +30,36 @@ public class SeqAlignment {
 			return name;
 		}
 	}
+	
+	private class Result{
+		private final int cost;
+		private final FastaRecord record1;
+		private final FastaRecord record2;
+		
+		public Result(int cost, FastaRecord record1, FastaRecord record2){
+			this.cost = cost;
+			this.record1 = record1;
+			this.record2 = record2;
+		}
+		
+		public int getCost(){
+			return cost;
+		}
+		
+		public FastaRecord getRecord1(){
+			return record1;
+		}
+		
+		public FastaRecord getRecord2(){
+			return record2;
+		}		
+	}
 
 	private static final String letter_Gap = "*";
 	private List<String> letters = new ArrayList<>();
 	private HashMap<String, HashMap<String, Integer>> alignmentData = new HashMap<>();
 	private List<FastaRecord> fastaRecords = new ArrayList<>();
+	private List<Result> results = new ArrayList<>();
 	
 	public SeqAlignment(File blosumFile) throws FileNotFoundException{
 		loadBlosum62(blosumFile);
@@ -98,8 +123,15 @@ public class SeqAlignment {
 		scanner.close();
 	}
 
-	public int align(){
-		return align(fastaRecords.get(0), fastaRecords.get(1));
+	public void align(){
+		for (int i=0; i<fastaRecords.size()-1; i++){
+			for (int j=i+1; j<fastaRecords.size(); j++){
+				int cost = align(fastaRecords.get(i), fastaRecords.get(j));
+				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
+			}
+		}
+		int c = results.size();
+		c=1;
 	}
 	
 	//This method might not be necessary :)
@@ -121,7 +153,7 @@ public class SeqAlignment {
 		//Alignment cost calculation with recurrence
 		//TODO: Implement
 		
-		return A[m][n];
+		return A[m-1][n-1];
 	}
 	
 	public boolean printResult(){
