@@ -31,6 +31,7 @@ public class SeqAlignment {
 		}
 	}
 
+	private static final String letter_Gap = "*";
 	private List<String> letters = new ArrayList<>();
 	private HashMap<String, HashMap<String, Integer>> alignmentData = new HashMap<>();
 	private List<FastaRecord> fastaRecords = new ArrayList<>();
@@ -97,11 +98,32 @@ public class SeqAlignment {
 		scanner.close();
 	}
 
-	public double align(){
-		//TODO: Implement fancy stuff
-		return -1;
+	public int align(){
+		return align(fastaRecords.get(0), fastaRecords.get(1));
 	}
-
+	
+	//This method might not be necessary :)
+	private int align(FastaRecord rec1, FastaRecord rec2){
+		return align(rec1.sequence, rec2.sequence);
+	}
+	
+	private int align(String seq1, String seq2){
+		//Initialize arrays
+		int m = seq1.length();
+		int n = seq2.length();
+		int[][] A = new int[m][n];
+		for (int i=0; i<m; i++){
+			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
+		}
+		for (int j=0; j<n; j++){
+			A[0][j] = (j+1) * getCost(letter_Gap, seq2.substring(j, j+1));
+		}		
+		//Alignment cost calculation with recurrence
+		//TODO: Implement
+		
+		return A[m][n];
+	}
+	
 	public boolean printResult(){
 		//TODO: Implement
 		return false;
@@ -119,12 +141,12 @@ public class SeqAlignment {
 					continue;
 				}
 				sa.loadFasta(file);
-
+				sa.align();
 			} 
 		} else{
 			sa.loadFasta(new File(input + "/" + args[0]));
+			sa.align();
 		}
-		sa.align();
 		sa.printResult();
 	}
 }
