@@ -21,12 +21,7 @@ public class SeqAlignment {
 			return name;
 		}
 
-		public String getSequence(){
-			return sequence;
-		}
-
-		@Override
-		public String toString() {
+		public String getSeg() {
 			return name;
 		}
 	}
@@ -59,6 +54,7 @@ public class SeqAlignment {
 	private List<String> letters = new ArrayList<>();
 	private HashMap<String, HashMap<String, Integer>> alignmentData = new HashMap<>();
 	private List<FastaRecord> fastaRecords = new ArrayList<>();
+	int[][] A;
 	private List<Result> results = new ArrayList<>();
 	
 	public SeqAlignment(File blosumFile) throws FileNotFoundException{
@@ -130,8 +126,6 @@ public class SeqAlignment {
 				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
 			}
 		}
-		int c = results.size();
-		c=1;
 	}
 	
 	//This method might not be necessary :)
@@ -140,20 +134,50 @@ public class SeqAlignment {
 	}
 	
 	private int align(String seq1, String seq2){
+		return align(seq1, seq2, true);
+	}
+	
+	private int align(String seq1, String seq2, boolean initArray){
+		System.out.println("seq1=" + seq1);
+		System.out.println("seq2=" + seq2);
+		if (seq1.isEmpty() && !seq2.isEmpty())
+			return getCost(letter_Gap, lastLetter(seq2));
+		if (seq2.isEmpty() && !seq1.isEmpty())
+			return getCost(lastLetter(seq1), letter_Gap);
+		if (seq1.isEmpty() && seq2.isEmpty())
+			return 10000;
 		//Initialize arrays
 		int m = seq1.length();
 		int n = seq2.length();
-		int[][] A = new int[m][n];
+		if (initArray)
+			A = new int[m+1][n+1];
 		for (int i=0; i<m; i++){
 			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
 		}
 		for (int j=0; j<n; j++){
 			A[0][j] = (j+1) * getCost(letter_Gap, seq2.substring(j, j+1));
-		}		
-		//Alignment cost calculation with recurrence
-		//TODO: Implement
-		
-		return A[m-1][n-1];
+		}
+		//Alignment cost calculation by recurrence
+		for (int j=0; j<n; j++){
+			for(int i=0; i<m; i++){
+				String seq1OneLess = seq1.substring(0, seq1.length()-1);
+				String seq2OneLess = seq2.substring(0, seq2.length()-1);
+				if (!seq1OneLess.isEmpty() && !seq2OneLess.isEmpty()){
+					A[i+1][j+1] = Math.max(
+							getCost(lastLetter(seq1), lastLetter(seq2)) + align(seq1OneLess, seq2OneLess, false),
+							Math.max(
+									getCost(letter_Gap, lastLetter(seq2)) + align(seq1OneLess, seq2, false),
+									getCost(lastLetter(seq1), letter_Gap) + align(seq1, seq2OneLess, false)));
+				}
+			}
+		}
+		int res = A[m][n];
+		System.out.println("res=" + res);
+		return res;
+	}
+	
+	private String lastLetter(String str){
+		return str.substring(str.length()-1);
 	}
 	
 	public boolean printResult(){
