@@ -21,8 +21,8 @@ public class SeqAlignment {
 			return name;
 		}
 
-		public String getSeg() {
-			return name;
+		public String getSeq() {
+			return sequence;
 		}
 	}
 	
@@ -193,12 +193,12 @@ public class SeqAlignment {
 			File folder = new File(input);
 			File[] files = folder.listFiles();
 			for(File file : files){
-				if(file.getName().contains("out.txt")){
+				if(file.getName().contains("out.txt") || file.getName().equals("BLOSUM62.txt")){
 					continue;
 				}
 				sa.loadFasta(file);
 				sa.align();
-			} 
+			}
 		} else{
 			sa.loadFasta(new File(input + "/" + args[0]));
 			sa.align();
