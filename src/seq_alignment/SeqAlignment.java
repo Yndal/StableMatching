@@ -8,6 +8,15 @@ import java.util.List;
 import java.util.Scanner;
 
 public class SeqAlignment {
+	private class Pair<T>{
+		public final T first;
+		public final T second;
+		public Pair(T first, T second) {
+			this.first = first;
+			this.second = second;
+		}
+	}
+
 	private class FastaRecord{
 		private final String name;
 		private final String sequence;
@@ -30,7 +39,7 @@ public class SeqAlignment {
 		private final int cost;
 		private final FastaRecord record1;
 		private final FastaRecord record2;
-		
+
 		public Result(int cost, FastaRecord record1, FastaRecord record2){
 			this.cost = cost;
 			this.record1 = record1;
@@ -47,7 +56,7 @@ public class SeqAlignment {
 		
 		public FastaRecord getRecord2(){
 			return record2;
-		}		
+		}
 	}
 
 	private static final String letter_Gap = "*";
@@ -122,98 +131,97 @@ public class SeqAlignment {
 	public void align(){
 		for (int i=0; i<fastaRecords.size()-1; i++){
 			for (int j=i+1; j<fastaRecords.size(); j++){
-				int cost = align(fastaRecords.get(i), fastaRecords.get(j));
+				String seq1 = fastaRecords.get(i).getSeq();
+				String seq2 = fastaRecords.get(j).getSeq();
+
+				int[][] costMatrix = align(seq1, seq2);
+				int cost = costMatrix[costMatrix.length -1][costMatrix[0].length -1];
+
+				System.out.println("cost: " + cost);
+				Pair<String> matching = traceMatching(seq1, seq2, costMatrix);
 				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
+				System.out.println(matching.first);
+				System.out.println(matching.second);
+				System.out.println();
 			}
 		}
 	}
 	
-	//This method might not be necessary :)
-	private int align(FastaRecord rec1, FastaRecord rec2){
-		return align(rec1.sequence, rec2.sequence);
+	private int[][] align(String seq1, String seq2) {
+		int m = seq1.length() +1;
+		int n = seq2.length() +1;
+
+		int[][] results = new int[m][n];
+
+		for(int i=1; i<m; i++) {
+			results[i][0] = i*getCost(letter_Gap, seq1.charAt(i-1) + "");
+		}
+
+		for(int i=1; i<n; i++) {
+			results[0][i] = i*getCost(letter_Gap, seq2.charAt(i-1) + "");
+		}
+
+		for (int i=1; i < m; i++) {
+			for (int j=1; j < n; j++) {
+				int cost1 = getCost(letter_Gap, seq2.charAt(j-1) + "") + results[i-1][j];
+				int cost2 = getCost(letter_Gap, seq1.charAt(i-1) + "") + results[i][j-1];
+				int cost3 = getCost(seq2.charAt(j-1) + "", seq1.charAt(i-1) + "") + results[i-1][j-1];
+				results[i][j] = Math.max(Math.max(cost1, cost2), cost3);
+			}
+		}
+
+		//System.out.print("         ");
+		//for (int i = 0; i<n-1; i++) {
+		//		System.out.print(seq2.charAt(i) + "    ");
+		//}
+		//for (int i = 0; i<m; i++) {
+		//	System.out.println();
+		//	if(i!=0) {
+		//		System.out.print(seq1.charAt(i-1) + " ");
+		//	} else {
+		//		System.out.print("  ");
+		//	}
+		//	for (int j = 0; j<n; j++) {
+		//		System.out.printf("%3d, ", results[i][j]);
+		//	}
+		//}
+		//System.out.println();
+		return results;
 	}
-	
-	private int align(String seq1, String seq2){
-		return align(seq1, seq2, true);
-	}
-	
-	private int align(String seq1, String seq2, boolean initArray){
-		if(seq1.isEmpty()){
-			int cost = 0;
-			for(int i=0; i<seq2.length(); i++)
-				cost += getCost(letter_Gap, seq2.charAt(i) + "");
-			
-			return cost;
-		}
-		if(seq2.isEmpty()){
-			int cost = 0;
-			for(int i=0; i<seq1.length(); i++)
-				cost += getCost(letter_Gap, seq1.charAt(i) + "");
-			
-			return cost;
-		}
-		
-		int m = seq1.length();
-		int n = seq2.length();
-		
-		//Initialize arrays
-		if (initArray)
-			A = new int[m+1][n+1];
-	
-		
-		//System.out.println("seq1=" + seq1);
-		//System.out.println("seq2=" + seq2);
-		
-		//Case 1 use char from seq1
-		int d1 = getCost(seq1.charAt(seq1.length()-1) + "", letter_Gap);
-		
-		
-		//Case 2 use char from seq2
-		int d2 = getCost(seq2.charAt(seq2.length()-1) + "", letter_Gap);
-		
-		
-		//Case 3 use char from seq1 and seq2
-		int d3 = getCost(seq1.charAt(seq1.length()-1) + "", seq2.charAt(seq2.length()-1) + "");
-		
-		
-		return Math.max(d1 + align(seq1.substring(0, seq1.length()-1), seq2, false),
-				Math.max(d2 + align(seq1, seq2.substring(0, seq2.length()-1), false), 
-						d3 + align(seq1.substring(0, seq1.length()-1), seq2.substring(0, seq2.length()-1), false)));
-		
-		
-		
-		/*if (seq1.isEmpty() && !seq2.isEmpty())
-			return getCost(letter_Gap, lastLetter(seq2));
-		if (seq2.isEmpty() && !seq1.isEmpty())
-			return getCost(lastLetter(seq1), letter_Gap);
-		if (seq1.isEmpty() && seq2.isEmpty())
-			return 10000;
-		
-		for (int i=0; i<m; i++){
-			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
-		}
-		for (int j=0; j<n; j++){
-			A[0][j] = (j+1) * getCost(letter_Gap, seq2.substring(j, j+1));
-		}
-		//Alignment cost calculation by recurrence
-		for (int j=0; j<n; j++){
-			for(int i=0; i<m; i++){
-				String seq1OneLess = seq1.substring(0, seq1.length()-1);
-				String seq2OneLess = seq2.substring(0, seq2.length()-1);
-				if (!seq1OneLess.isEmpty() && !seq2OneLess.isEmpty()){
-					A[i+1][j+1] = Math.max(
-							getCost(lastLetter(seq1), lastLetter(seq2)) + align(seq1OneLess, seq2OneLess, false),
-							Math.max(
-									getCost(letter_Gap, lastLetter(seq2)) + align(seq1OneLess, seq2, false),
-									getCost(lastLetter(seq1), letter_Gap) + align(seq1, seq2OneLess, false)));
+
+	private Pair<String> traceMatching(String seq1, String seq2, int[][] costMat) {
+		String m1 = "";
+		String m2 = "";
+		int m = costMat.length;
+		int n = costMat[0].length;
+
+		for (int i = m-1; i>0;) {
+			for (int j = n-1; j>0;) {
+				int cost1 = costMat[i-1][j];
+				int cost2 = costMat[i][j-1];
+				int cost3 = costMat[i-1][j-1];
+
+				int maxCost = Math.max(Math.max(cost1, cost2), cost3);
+
+				if (cost1 == maxCost) {
+					m2 = "-" + m2;
+					m1 = seq1.charAt(i-1) + m1;
+					i--;
+				} else if (cost2 == maxCost) {
+					m1 = "-" + m1;
+					m2 = seq2.charAt(j-1) + m2;
+					j--;
+				} else if (cost3 == maxCost) {
+					m1 = seq1.charAt(i-1)+ m1;
+					m2 = seq2.charAt(j-1)+ m2;
+					j--;
+					i--;
 				}
 			}
 		}
-		int res = A[m][n];
-		System.out.println("res=" + res);
-		return res;*/
+		return new Pair<String>(m1,m2);
 	}
-	
+
 	private String lastLetter(String str){
 		return str.substring(str.length()-1);
 	}
