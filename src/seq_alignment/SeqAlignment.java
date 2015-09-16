@@ -138,19 +138,57 @@ public class SeqAlignment {
 	}
 	
 	private int align(String seq1, String seq2, boolean initArray){
-		System.out.println("seq1=" + seq1);
-		System.out.println("seq2=" + seq2);
-		if (seq1.isEmpty() && !seq2.isEmpty())
+		if(seq1.isEmpty()){
+			int cost = 0;
+			for(int i=0; i<seq2.length(); i++)
+				cost += getCost(letter_Gap, seq2.charAt(i) + "");
+			
+			return cost;
+		}
+		if(seq2.isEmpty()){
+			int cost = 0;
+			for(int i=0; i<seq1.length(); i++)
+				cost += getCost(letter_Gap, seq1.charAt(i) + "");
+			
+			return cost;
+		}
+		
+		int m = seq1.length();
+		int n = seq2.length();
+		
+		//Initialize arrays
+		if (initArray)
+			A = new int[m+1][n+1];
+	
+		
+		//System.out.println("seq1=" + seq1);
+		//System.out.println("seq2=" + seq2);
+		
+		//Case 1 use char from seq1
+		int d1 = getCost(seq1.charAt(seq1.length()-1) + "", letter_Gap);
+		
+		
+		//Case 2 use char from seq2
+		int d2 = getCost(seq2.charAt(seq2.length()-1) + "", letter_Gap);
+		
+		
+		//Case 3 use char from seq1 and seq2
+		int d3 = getCost(seq1.charAt(seq1.length()-1) + "", seq2.charAt(seq2.length()-1) + "");
+		
+		
+		return Math.max(d1 + align(seq1.substring(0, seq1.length()-1), seq2, false),
+				Math.max(d2 + align(seq1, seq2.substring(0, seq2.length()-1), false), 
+						d3 + align(seq1.substring(0, seq1.length()-1), seq2.substring(0, seq2.length()-1), false)));
+		
+		
+		
+		/*if (seq1.isEmpty() && !seq2.isEmpty())
 			return getCost(letter_Gap, lastLetter(seq2));
 		if (seq2.isEmpty() && !seq1.isEmpty())
 			return getCost(lastLetter(seq1), letter_Gap);
 		if (seq1.isEmpty() && seq2.isEmpty())
 			return 10000;
-		//Initialize arrays
-		int m = seq1.length();
-		int n = seq2.length();
-		if (initArray)
-			A = new int[m+1][n+1];
+		
 		for (int i=0; i<m; i++){
 			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
 		}
@@ -173,7 +211,7 @@ public class SeqAlignment {
 		}
 		int res = A[m][n];
 		System.out.println("res=" + res);
-		return res;
+		return res;*/
 	}
 	
 	private String lastLetter(String str){
@@ -189,11 +227,13 @@ public class SeqAlignment {
 		String input = "input/seq_alignment";
 		SeqAlignment sa = new SeqAlignment(new File(input + "/" + "BLOSUM62.txt"));
 		
+		args = new String[]{"Toy_FASTAs-in.txt"};
+		
 		if(args.length == 0){
 			File folder = new File(input);
 			File[] files = folder.listFiles();
 			for(File file : files){
-				if(file.getName().contains("out.txt")){
+				if(file.getName().contains("out.txt") || file.getName().contains("62")){
 					continue;
 				}
 				sa.loadFasta(file);
