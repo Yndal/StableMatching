@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
-import java.lang.Math;
 
 public class SeqAlignment {
 	private class FastaRecord{
@@ -123,28 +122,96 @@ public class SeqAlignment {
 	public void align(){
 		for (int i=0; i<fastaRecords.size()-1; i++){
 			for (int j=i+1; j<fastaRecords.size(); j++){
-				System.out.println("run");
-				int cost = align(fastaRecords.get(i).getSeq(), fastaRecords.get(j).getSeq());
+				int cost = align(fastaRecords.get(i), fastaRecords.get(j));
 				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
-				System.out.println("" + cost);
 			}
 		}
 	}
 	
 	//This method might not be necessary :)
-	private int align(CharSequence rec1, CharSequence rec2){
-		if (0 == rec1.length()) {
-			return -4 * rec2.length();
+	private int align(FastaRecord rec1, FastaRecord rec2){
+		return align(rec1.sequence, rec2.sequence);
+	}
+	
+	private int align(String seq1, String seq2){
+		return align(seq1, seq2, true);
+	}
+	
+	private int align(String seq1, String seq2, boolean initArray){
+		if(seq1.isEmpty()){
+			int cost = 0;
+			for(int i=0; i<seq2.length(); i++)
+				cost += getCost(letter_Gap, seq2.charAt(i) + "");
+			
+			return cost;
 		}
-		if (0 == rec2.length()) {
-			return -4 * rec1.length();
+		if(seq2.isEmpty()){
+			int cost = 0;
+			for(int i=0; i<seq1.length(); i++)
+				cost += getCost(letter_Gap, seq1.charAt(i) + "");
+			
+			return cost;
 		}
-		int cost1 = -4 + align(rec1.subSequence(1, rec1.length()), rec2);
-		int cost2 = -4 + align(rec1, rec2.subSequence(1, rec2.length()));
-		int cost3 = alignmentData.get(String.valueOf(rec1.charAt(0))).get(String.valueOf(rec2.charAt(0))) + align(rec1.subSequence(1, rec1.length()), rec2.subSequence(1, rec2.length()));
-
-		int maxCost = Math.max(Math.max(cost1, cost2), cost3);
-		return maxCost;
+		
+		int m = seq1.length();
+		int n = seq2.length();
+		
+		//Initialize arrays
+		if (initArray)
+			A = new int[m+1][n+1];
+	
+		
+		//System.out.println("seq1=" + seq1);
+		//System.out.println("seq2=" + seq2);
+		
+		//Case 1 use char from seq1
+		int d1 = getCost(seq1.charAt(seq1.length()-1) + "", letter_Gap);
+		
+		
+		//Case 2 use char from seq2
+		int d2 = getCost(seq2.charAt(seq2.length()-1) + "", letter_Gap);
+		
+		
+		//Case 3 use char from seq1 and seq2
+		int d3 = getCost(seq1.charAt(seq1.length()-1) + "", seq2.charAt(seq2.length()-1) + "");
+		
+		
+		return Math.max(d1 + align(seq1.substring(0, seq1.length()-1), seq2, false),
+				Math.max(d2 + align(seq1, seq2.substring(0, seq2.length()-1), false), 
+						d3 + align(seq1.substring(0, seq1.length()-1), seq2.substring(0, seq2.length()-1), false)));
+		
+		
+		
+		/*if (seq1.isEmpty() && !seq2.isEmpty())
+			return getCost(letter_Gap, lastLetter(seq2));
+		if (seq2.isEmpty() && !seq1.isEmpty())
+			return getCost(lastLetter(seq1), letter_Gap);
+		if (seq1.isEmpty() && seq2.isEmpty())
+			return 10000;
+		
+		for (int i=0; i<m; i++){
+			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
+		}
+		for (int j=0; j<n; j++){
+			A[0][j] = (j+1) * getCost(letter_Gap, seq2.substring(j, j+1));
+		}
+		//Alignment cost calculation by recurrence
+		for (int j=0; j<n; j++){
+			for(int i=0; i<m; i++){
+				String seq1OneLess = seq1.substring(0, seq1.length()-1);
+				String seq2OneLess = seq2.substring(0, seq2.length()-1);
+				if (!seq1OneLess.isEmpty() && !seq2OneLess.isEmpty()){
+					A[i+1][j+1] = Math.max(
+							getCost(lastLetter(seq1), lastLetter(seq2)) + align(seq1OneLess, seq2OneLess, false),
+							Math.max(
+									getCost(letter_Gap, lastLetter(seq2)) + align(seq1OneLess, seq2, false),
+									getCost(lastLetter(seq1), letter_Gap) + align(seq1, seq2OneLess, false)));
+				}
+			}
+		}
+		int res = A[m][n];
+		System.out.println("res=" + res);
+		return res;*/
 	}
 	
 	private String lastLetter(String str){
@@ -160,11 +227,14 @@ public class SeqAlignment {
 		String input = "input/seq_alignment";
 		SeqAlignment sa = new SeqAlignment(new File(input + "/" + "BLOSUM62.txt"));
 		
+		args = new String[]{"Toy_FASTAs-in.txt"};
+		
 		if(args.length == 0){
 			File folder = new File(input);
 			File[] files = folder.listFiles();
 			for(File file : files){
-				if(file.getName().contains("out.txt") || file.getName().equals("BLOSUM62.txt")){
+				if(file.getName().contains("out.txt") || file.getName().contains("62")){
+
 					continue;
 				}
 				sa.loadFasta(file);
