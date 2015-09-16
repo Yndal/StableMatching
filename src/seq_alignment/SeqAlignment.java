@@ -73,6 +73,14 @@ public class SeqAlignment {
 	private int getCost(String letter1, String letter2){
 		return alignmentData.get(letter1).get(letter2);
 	}
+
+	private int getCost(char letter1, char letter2){
+		return alignmentData.get(letter1 + "").get(letter2 + "");
+	}
+
+	private int getCost(String letter1, char letter2){
+		return alignmentData.get(letter1).get(letter2 + "");
+	}
 	
 	private void loadBlosum62(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
@@ -170,21 +178,21 @@ public class SeqAlignment {
 			}
 		}
 
-		//System.out.print("         ");
-		//for (int i = 0; i<n-1; i++) {
-		//		System.out.print(seq2.charAt(i) + "    ");
-		//}
-		//for (int i = 0; i<m; i++) {
-		//	System.out.println();
-		//	if(i!=0) {
-		//		System.out.print(seq1.charAt(i-1) + " ");
-		//	} else {
-		//		System.out.print("  ");
-		//	}
-		//	for (int j = 0; j<n; j++) {
-		//		System.out.printf("%3d, ", results[i][j]);
-		//	}
-		//}
+		System.out.print("         ");
+		for (int i = 0; i<n-1; i++) {
+				System.out.print(seq2.charAt(i) + "    ");
+		}
+		for (int i = 0; i<m; i++) {
+			System.out.println();
+			if(i!=0) {
+				System.out.print(seq1.charAt(i-1) + " ");
+			} else {
+				System.out.print("  ");
+			}
+			for (int j = 0; j<n; j++) {
+				System.out.printf("%3d, ", results[i][j]);
+			}
+		}
 		//System.out.println();
 		return results;
 	}
@@ -195,28 +203,27 @@ public class SeqAlignment {
 		int m = costMat.length;
 		int n = costMat[0].length;
 
-		for (int i = m-1; i>0;) {
-			for (int j = n-1; j>0;) {
-				int cost1 = costMat[i-1][j];
-				int cost2 = costMat[i][j-1];
-				int cost3 = costMat[i-1][j-1];
+		int i=m-1, j=n-1;
+		while(j>0 && i>0) {
+			int cost1 = costMat[i-1][j] + getCost(letter_Gap, seq2.charAt(j-1));
+			int cost2 = costMat[i][j-1] + getCost(letter_Gap, seq1.charAt(i-1));
+			int cost3 = costMat[i-1][j-1] + getCost(seq1.charAt(i-1) + "", seq2.charAt(j-1)+"");
 
-				int maxCost = Math.max(Math.max(cost1, cost2), cost3);
+			int maxCost = Math.max(Math.max(cost1, cost2), cost3);
 
-				if (cost1 == maxCost) {
-					m2 = "-" + m2;
-					m1 = seq1.charAt(i-1) + m1;
-					i--;
-				} else if (cost2 == maxCost) {
-					m1 = "-" + m1;
-					m2 = seq2.charAt(j-1) + m2;
-					j--;
-				} else if (cost3 == maxCost) {
-					m1 = seq1.charAt(i-1)+ m1;
-					m2 = seq2.charAt(j-1)+ m2;
-					j--;
-					i--;
-				}
+			if (cost1 == maxCost) {
+				m2 = "-" + m2;
+				m1 = seq1.charAt(i-1) + m1;
+				i--;
+			} else if (cost2 == maxCost) {
+				m1 = "-" + m1;
+				m2 = seq2.charAt(j-1) + m2;
+				j--;
+			} else if (cost3 == maxCost) {
+				m1 = seq1.charAt(i-1)+ m1;
+				m2 = seq2.charAt(j-1)+ m2;
+				j--;
+				i--;
 			}
 		}
 		return new Pair<String>(m1,m2);
