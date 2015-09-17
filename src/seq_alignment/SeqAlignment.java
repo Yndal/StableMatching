@@ -11,6 +11,7 @@ public class SeqAlignment {
 	private class FastaRecord{
 		private final String name;
 		private final String sequence;
+		private String alignedSeq;
 
 		private FastaRecord(String name, String sequence){
 			this.name = name;
@@ -21,15 +22,23 @@ public class SeqAlignment {
 			return name;
 		}
 
-		public String getSeg() {
-			return name;
+		public String getSeq() {
+			return sequence;
+		}
+		
+		public String getAlignedSeq() {
+			return alignedSeq;
+		}
+
+		public void setAlignedSeq(String alignedSeq) {
+			this.alignedSeq = alignedSeq;
 		}
 	}
 	
 	private class Result{
-		private final int cost;
-		private final FastaRecord record1;
-		private final FastaRecord record2;
+		private int cost;
+		private FastaRecord record1;
+		private FastaRecord record2;
 		
 		public Result(int cost, FastaRecord record1, FastaRecord record2){
 			this.cost = cost;
@@ -47,18 +56,32 @@ public class SeqAlignment {
 		
 		public FastaRecord getRecord2(){
 			return record2;
-		}		
+		}
+		
+		@Override
+		public String toString(){
+			StringBuilder sb = new StringBuilder();
+			sb.append(record1.name + "--" + record2.name + ": " + cost + "\n");
+			sb.append(record1.getAlignedSeq() + "\n");
+			sb.append(record2.getAlignedSeq() + "\n");
+			
+			return sb.toString();
+		}
 	}
 
 	private static final String letter_Gap = "*";
+	private static int deltaValue = -4;
 	private List<String> letters = new ArrayList<>();
 	private HashMap<String, HashMap<String, Integer>> alignmentData = new HashMap<>();
 	private List<FastaRecord> fastaRecords = new ArrayList<>();
-	int[][] A;
 	private List<Result> results = new ArrayList<>();
 	
 	public SeqAlignment(File blosumFile) throws FileNotFoundException{
 		loadBlosum62(blosumFile);
+	}
+	
+	private int getCost(char c1, char c2){
+		return getCost(c1 + "", c2 + "");
 	}
 	
 	private int getCost(String letter1, String letter2){
@@ -130,79 +153,129 @@ public class SeqAlignment {
 	
 	//This method might not be necessary :)
 	private int align(FastaRecord rec1, FastaRecord rec2){
-		return align(rec1.sequence, rec2.sequence);
-	}
-	
-	private int align(String seq1, String seq2){
-		return align(seq1, seq2, true);
-	}
-	
-	private int align(String seq1, String seq2, boolean initArray){
-		System.out.println("seq1=" + seq1);
-		System.out.println("seq2=" + seq2);
-		if (seq1.isEmpty() && !seq2.isEmpty())
-			return getCost(letter_Gap, lastLetter(seq2));
-		if (seq2.isEmpty() && !seq1.isEmpty())
-			return getCost(lastLetter(seq1), letter_Gap);
-		if (seq1.isEmpty() && seq2.isEmpty())
-			return 10000;
-		//Initialize arrays
+		String seq1 = rec1.sequence;
+		String seq2 = rec2.sequence;
+		
 		int m = seq1.length();
 		int n = seq2.length();
-		if (initArray)
-			A = new int[m+1][n+1];
-		for (int i=0; i<m; i++){
-			A[i][0] = (i+1) * getCost(seq1.substring(i, i+1), letter_Gap);
-		}
-		for (int j=0; j<n; j++){
-			A[0][j] = (j+1) * getCost(letter_Gap, seq2.substring(j, j+1));
-		}
-		//Alignment cost calculation by recurrence
-		for (int j=0; j<n; j++){
-			for(int i=0; i<m; i++){
-				String seq1OneLess = seq1.substring(0, seq1.length()-1);
-				String seq2OneLess = seq2.substring(0, seq2.length()-1);
-				if (!seq1OneLess.isEmpty() && !seq2OneLess.isEmpty()){
-					A[i+1][j+1] = Math.max(
-							getCost(lastLetter(seq1), lastLetter(seq2)) + align(seq1OneLess, seq2OneLess, false),
-							Math.max(
-									getCost(letter_Gap, lastLetter(seq2)) + align(seq1OneLess, seq2, false),
-									getCost(lastLetter(seq1), letter_Gap) + align(seq1, seq2OneLess, false)));
-				}
+		int[][] M = new int[m+1][n+1];
+		
+		for(int i=0; i<m+1; i++)
+			M[i][0] = deltaValue*i;
+		for(int i=0; i<n+1; i++)
+			M[0][i] = deltaValue*i;
+		
+		//Create cost matrix
+		for(int iM=1; iM<m+1; iM++){
+			for(int iN=1; iN<n+1; iN++){
+				int cost1 = M[iM-1][iN-1] + getCost(seq1.charAt(iM-1), seq2.charAt(iN-1));
+				int cost2 = M[iM-1][iN] + getCost(seq1.charAt(iM-1) + "", letter_Gap);
+				int cost3 = M[iM][iN-1] + getCost(letter_Gap, seq2.charAt(iN-1) + "");
+				
+				
+				M[iM][iN] = Math.max(cost1, 
+						Math.max(cost2, 
+								cost3));
 			}
 		}
-		int res = A[m][n];
-		System.out.println("res=" + res);
-		return res;
+		
+//		System.out.println(seq1);
+//		System.out.println(seq2);
+//		printArray(M);
+		
+		//Get optimal solution
+		String s1 = "";
+		String s2 = "";
+		int totalCost = M[m][n];
+		for(int im=seq1.length(); im>0;){
+			for(int in=seq2.length(); in>0;){				
+				
+				//Case 1: Char from seq1
+				int cost1 = deltaValue + M[im-1][in];
+				
+				//Case 2: Char from seq2
+				int cost2 = deltaValue + M[im][in-1];
+				
+				//Case 3: Char from seq1 and seq2
+				int cost3 = M[im][in] + M[im-1][in-1];
+				
+				int max = Math.max(cost1, Math.max(cost2, cost3));
+				
+				if(cost1 == max){
+					s1 = seq1.charAt(im-1) + s1;
+					s2 = letter_Gap + s2;	
+					im--;
+					
+				} else if(cost2 == max){
+					s1 = letter_Gap + s1;
+					s2 = seq2.charAt(in-1) + s2;
+					in--;
+				} else if (cost3 == max){
+					s1 = seq1.charAt(im-1) + s1;
+					s2 = seq2.charAt(in-1) + s2;
+					im--;
+					in--;
+				}
+//				System.out.println(String.format("s1: %10s ", s1));
+//				System.out.println(String.format("s2: %10s ", s2));
+//				System.out.println();
+				
+				
+			}
+		}
+		
+		rec1.setAlignedSeq(s1);
+		rec2.setAlignedSeq(s2);
+		
+		System.out.println(s1);
+		System.out.println(s2);
+		
+		return totalCost;
 	}
 	
+	
+	private void printArray(int[][] M) {
+		for(int m=M.length-1; 0<=m; m--){
+			for(int n=0; n<M[0].length;n++){
+				System.out.print(String.format("%3s\t", M[m][n]));
+			}
+			System.out.println();
+			
+		}
+	}
+
 	private String lastLetter(String str){
 		return str.substring(str.length()-1);
 	}
 	
-	public boolean printResult(){
-		//TODO: Implement
-		return false;
+	public void printResult(){
+		for(Result result : results){
+			System.out.println(result);	
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		String input = "input/seq_alignment";
 		SeqAlignment sa = new SeqAlignment(new File(input + "/" + "BLOSUM62.txt"));
 		
+		args = new String[]{"Toy_FASTAs-in.txt"};
+		
 		if(args.length == 0){
 			File folder = new File(input);
 			File[] files = folder.listFiles();
 			for(File file : files){
-				if(file.getName().contains("out.txt")){
+				if(file.getName().contains("out.txt") ||
+						file.getName().contains("62")){
 					continue;
 				}
 				sa.loadFasta(file);
 				sa.align();
-			} 
+			}
 		} else{
 			sa.loadFasta(new File(input + "/" + args[0]));
 			sa.align();
 		}
+		
 		sa.printResult();
 	}
 }
