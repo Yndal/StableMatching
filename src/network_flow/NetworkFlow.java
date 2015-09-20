@@ -3,11 +3,12 @@ package network_flow;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 
 public class NetworkFlow {	
+	private Graph graph;
+	
 	private void loadOutFile(File file) throws FileNotFoundException{
 		/*Scanner scanner = new Scanner(file);
 		String s;
@@ -42,35 +43,59 @@ public class NetworkFlow {
 	
 	private void loadInFile(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
-		int nodes = Integer.parseInt(scanner.nextLine());
-		List<String> indices = new ArrayList<>(nodes);
+		int nodeAmount = Integer.parseInt(scanner.nextLine());
+		List<String> indices = new ArrayList<>(nodeAmount);
 		
-		for(int i=0; i<nodes; i++){
+		Node source = null;
+		Node target = null;
+		
+		List<Node> nodes = new ArrayList<>();
+		for(int i=0; i<nodeAmount; i++){
 			String nodeStr = scanner.nextLine();
+			Node node = new Node(nodeStr);
+			nodes.add(node);
 			indices.add(nodeStr);
+			if(nodeStr.equals("ORIGINS"))
+				source = node;
+			else if(nodeStr.equals("DESTINATIONS"))
+				target = node;
 			System.out.println("Node: " + nodeStr);
 		}
 		
-		int edges = Integer.parseInt(scanner.nextLine()); 
+		if(source == null || target == null){
+			scanner.close();
+			throw new RuntimeException("No source and/or target defined in input file!");
+		}
 		
-		for(int i=0; i<edges; i++){
+		int edgeAmount = Integer.parseInt(scanner.nextLine()); 
+		List<Edge> edges = new ArrayList<>(edgeAmount);
+		
+		for(int i=0; i<edgeAmount; i++){
 			String line = scanner.nextLine();
 			String[] split =line.split(" ");
 			
-			String eStart = split[0];
-			String eEnd = split[1];
+			int eStart = Integer.parseInt(split[0]);
+			int eEnd = Integer.parseInt(split[1]);
 			int eWeight = Integer.parseInt(split[2]);
 			
-			System.out.println(String.format("Edge (id start, id end, weight): %2s --> %2s: %3s", eStart, eEnd, eWeight));
+			Node startNode = nodes.get(eStart);
+			Node endNode = nodes.get(eEnd);
+			Edge edge = new Edge(startNode, endNode, eWeight);
+			
+			startNode.addEdge(edge);
+			endNode.addEdge(edge); //Edges are undirected
+			edges.add(edge);
+			
+			System.out.println(String.format("Edge (id start, id end, weight): %2d --> %2d: %3d", eStart, eEnd, eWeight));
 		}
-		
 		scanner.close();
+		
+		graph = new Graph(edges, nodes, source, target);	
 	}
 
 	public void solve(){
 		//TODO
 	}
-	
 	
 	
 	private void printSolution() {
