@@ -145,13 +145,13 @@ public class SeqAlignment {
 	public void align(){
 		for (int i=0; i<fastaRecords.size()-1; i++){
 			for (int j=i+1; j<fastaRecords.size(); j++){
+				
 				int cost = align(fastaRecords.get(i), fastaRecords.get(j));
 				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
 			}
 		}
 	}
 	
-	//This method might not be necessary :)
 	private int align(FastaRecord rec1, FastaRecord rec2){
 		String seq1 = rec1.sequence;
 		String seq2 = rec2.sequence;
