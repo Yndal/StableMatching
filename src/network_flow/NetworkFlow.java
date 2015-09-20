@@ -43,9 +43,11 @@ public class NetworkFlow {
 	private void loadInFile(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
 		int nodes = Integer.parseInt(scanner.nextLine());
+		List<String> indices = new ArrayList<>(nodes);
 		
 		for(int i=0; i<nodes; i++){
 			String nodeStr = scanner.nextLine();
+			indices.add(nodeStr);
 			System.out.println("Node: " + nodeStr);
 		}
 		
@@ -59,7 +61,7 @@ public class NetworkFlow {
 			String eEnd = split[1];
 			int eWeight = Integer.parseInt(split[2]);
 			
-			System.out.println("Edge: " + eStart + " --> " + eEnd + ": " + eWeight);
+			System.out.println(String.format("Edge (id start, id end, weight): %2s --> %2s: %3s", eStart, eEnd, eWeight));
 		}
 		
 		scanner.close();
