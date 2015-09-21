@@ -52,4 +52,9 @@ public class Graph {
 	public List<Edge> getEdges(){
 		return edges;
 	}
+	
+	public void setAllEdgesAsDiscovered(boolean b){
+		for(Edge e : edges)
+			e.markDiscovered(b);		
+	}
 }

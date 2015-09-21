@@ -173,46 +173,54 @@ public class NetworkFlow {
 		return new ArrayList<>();
 	}
 	
-	private List<Edge> getPath(Graph graph, Node source, Node target){
-		//TODO 
-		Queue<Edge> pathStack = new LinkedList<>();
-		
-		for(Edge edge : source.getEdges()){
-			List<Edge> list = getPathHelper(edge, target);
-			if(!list.isEmpty())
+	private List<Edge> BFS(Node start, Node target){
+		for(Edge e : start.getEdges()){
+			if(e.isDiscovered())
+				continue;
+			
+			e.markDiscovered(true);
+			if(e.getEndNode() == target){
+				List<Edge> list = new ArrayList<>();
+				list.add(e);
 				return list;
+			} else {
+				List<Edge> list = BFS(e.getEndNode(), target);
+				if(!list.isEmpty()){
+					return list;
+				} 
+			}	
 		}
 		
-		List<Edge> path = new ArrayList<>();
-		while(!pathStack.isEmpty())
-			path.add(pathStack.poll());
-		/*
-		Breadth-First-Search(G, v):
- 2 
- 3     for each node n in G:            
- 4         n.distance = INFINITY        
- 5         n.parent = NIL
- 6 
- 7     create empty queue Q      
- 8 
- 9     v.distance = 0
-10     Q.enqueue(v)                      
-11 
-12     while Q is not empty:        
-13     
-14         u = Q.dequeue()
-15     
-16         for each node n that is adjacent to u:
-17             if n.distance == INFINITY:
-18                 n.distance = u.distance + 1
-19                 n.parent = u
-20                 Q.enqueue(n)
-		*/
+		return new ArrayList<>();
+	}
+	
+	private List<Edge> getPath(Graph graph, Node source, Node target){
+		graph.setAllEdgesAsDiscovered(false);
+		
+		return BFS(source, target);
+		
+		/*Queue<Edge> pathStack = new LinkedList<>();
+		
+		for(Edge edge: source.getEdges()){
+			pathStack.add(edge);
+			
+			while(!pathStack.isEmpty()){
+				Edge e = pathStack.remove();
+				if(e.getEndNode() == target) {
+					break; //Path found
+				} else {
+					for(Edge e : e.getEndNode().getEdges()){
+						
+					}
+				}
+			}
+		}
 		
 		
 		
 		
-		return path;
+		
+		return path;*/
 	}
 	
 	
