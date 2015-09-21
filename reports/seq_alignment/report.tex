@@ -15,17 +15,30 @@
   \maketitle
 
   \section{Results}
-	Our implementation produces the expected results on all pairs of species. Even thought the alignments are not \textit{exactly} the similar to the out-files, they are still \textit{an} optimal solution.
-	
+	Our implementation produces the expected results on all pairs of
+	species. Even thought the alignments are not precisely the same as the
+	out-files, they are optimal solutions (I.E. of optimal cost/value).
 	The output after solving the smallest input file (the Toy-file) is:
-  {\color{red} INSERT OUTPUT FROM TOY FILE}
+
   \begin{fullwidth}\small
   	\begin{verbatim}
+  File: Toy_FASTAs-in.txt
+  Sphinx--Bandersnatch: 5
+  KQRK
+  KA-K
+  Sphinx--Snark: -8
+  KQR-K------
+  KQRIKAAKABK
+  Bandersnatch--Snark: -18
+  K----A-K---
+  KQRIKAAKABK
    \end{verbatim}
 \end{fullwidth}
 
 
   \section{Implementation details}
-	We have chosen the bottom-up approach by creating a matrix of size m*n. This matrix will values for the alignment and takes $O(m*n)$ time to create.
+	We have chosen the bottom-up approach, creating an $m\times n$ matrix.
+	This matrix is filled with values for the possible alignments, taking
+	$O(m*n)$ time and space to create.
 
 \end{document}
