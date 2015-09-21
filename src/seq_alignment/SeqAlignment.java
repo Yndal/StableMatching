@@ -221,12 +221,12 @@ public class SeqAlignment {
 		int n = costMat[0].length;
 
 		int i=m-1, j=n-1;
-		while(j>0 && i>0) {
-			int cost1 = costMat[i-1][j] + getCost(letter_Gap, seq2.charAt(j-1));
-			int cost2 = costMat[i][j-1] + getCost(letter_Gap, seq1.charAt(i-1));
-			int cost3 = costMat[i-1][j-1] + getCost(seq1.charAt(i-1) + "", seq2.charAt(j-1)+"");
+		while(j>0 || i>0) {
+			int cost1 = !(i>0) ? Integer.MIN_VALUE : costMat[i-1][j] + getCost(letter_Gap, seq1.charAt(i-1));
+			int cost2 = !(j>0) ? Integer.MIN_VALUE : costMat[i][j-1] + getCost(letter_Gap, seq2.charAt(j-1));
+			int cost3 = !(j>0 && i>0) ? Integer.MIN_VALUE : costMat[i-1][j-1] + getCost(seq1.charAt(i-1) + "", seq2.charAt(j-1)+"");
 
-			int maxCost = Math.max(Math.max(cost1, cost2), cost3);
+			int maxCost = Math.max(cost1, Math.max(cost2, cost3));
 
 			if (cost1 == maxCost) {
 				m2 = "-" + m2;
@@ -267,7 +267,6 @@ public class SeqAlignment {
 			File[] files = folder.listFiles();
 			for(File file : files){
 				if(file.getName().contains("out.txt") || file.getName().contains("62")){
-
 					continue;
 				}
 				sa.loadFasta(file);
@@ -277,6 +276,7 @@ public class SeqAlignment {
 			sa.loadFasta(new File(input + "/" + args[0]));
 			results.add(new Pair<String,List<Result>>(args[0], sa.align()));
 		}
+
 		for(Pair<String, List<Result>> rl : results) {
 			System.out.println("File: " + rl.first);
 			sa.printResult(rl.second);
