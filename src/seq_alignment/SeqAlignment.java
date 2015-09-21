@@ -216,11 +216,6 @@ public class SeqAlignment {
 					im--;
 					in--;
 				}
-//				System.out.println(String.format("s1: %10s ", s1));
-//				System.out.println(String.format("s2: %10s ", s2));
-//				System.out.println();
-				
-				
 			}
 		}
 		
