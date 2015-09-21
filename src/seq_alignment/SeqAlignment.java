@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Scanner;
 
 public class SeqAlignment {
-	private class Pair<T>{
+	private static class Pair<T,T2>{
 		public final T first;
-		public final T second;
-		public Pair(T first, T second) {
+		public final T2 second;
+		public Pair(T first, T2 second) {
 			this.first = first;
 			this.second = second;
 		}
@@ -39,11 +39,13 @@ public class SeqAlignment {
 		private final int cost;
 		private final FastaRecord record1;
 		private final FastaRecord record2;
+		private final String alignment;
 
-		public Result(int cost, FastaRecord record1, FastaRecord record2){
+		public Result(int cost, FastaRecord record1, FastaRecord record2, String alignment){
 			this.cost = cost;
 			this.record1 = record1;
 			this.record2 = record2;
+			this.alignment = alignment;
 		}
 		
 		public int getCost(){
@@ -57,14 +59,22 @@ public class SeqAlignment {
 		public FastaRecord getRecord2(){
 			return record2;
 		}
+
+		@Override
+		public String toString() {
+			return record1.getName() + "--" +
+				record2.getName() +": " +
+				cost +"\n" +
+				alignment;
+		}
 	}
 
 	private static final String letter_Gap = "*";
+	private static boolean DEBUG;
 	private List<String> letters = new ArrayList<>();
 	private HashMap<String, HashMap<String, Integer>> alignmentData = new HashMap<>();
 	private List<FastaRecord> fastaRecords = new ArrayList<>();
 	int[][] A;
-	private List<Result> results = new ArrayList<>();
 	
 	public SeqAlignment(File blosumFile) throws FileNotFoundException{
 		loadBlosum62(blosumFile);
@@ -136,7 +146,8 @@ public class SeqAlignment {
 		scanner.close();
 	}
 
-	public void align(){
+	public List<Result> align(){
+		List<Result> results = new ArrayList<>();
 		for (int i=0; i<fastaRecords.size()-1; i++){
 			for (int j=i+1; j<fastaRecords.size(); j++){
 				String seq1 = fastaRecords.get(i).getSeq();
@@ -145,16 +156,20 @@ public class SeqAlignment {
 				int[][] costMatrix = align(seq1, seq2);
 				int cost = costMatrix[costMatrix.length -1][costMatrix[0].length -1];
 
-				System.out.println("cost: " + cost);
-				Pair<String> matching = traceMatching(seq1, seq2, costMatrix);
-				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j)));
-				System.out.println(matching.first);
-				System.out.println(matching.second);
-				System.out.println();
+				Pair<String, String> matching = traceMatching(seq1, seq2, costMatrix);
+				String alignmentString = matching.first + "\n" + matching.second;
+				results.add(new Result(cost, fastaRecords.get(i), fastaRecords.get(j), alignmentString));
+				if(DEBUG) {
+					System.out.println("cost: " + cost);
+					System.out.println(matching.first);
+					System.out.println(matching.second);
+					System.out.println();
+				}
 			}
 		}
+		return results;
 	}
-	
+
 	private int[][] align(String seq1, String seq2) {
 		int m = seq1.length() +1;
 		int n = seq2.length() +1;
@@ -178,26 +193,28 @@ public class SeqAlignment {
 			}
 		}
 
-		System.out.print("         ");
-		for (int i = 0; i<n-1; i++) {
+		if(DEBUG) {
+			System.out.print("         ");
+			for (int i = 0; i<n-1; i++) {
 				System.out.print(seq2.charAt(i) + "    ");
-		}
-		for (int i = 0; i<m; i++) {
+			}
+			for (int i = 0; i<m; i++) {
+				System.out.println();
+				if(i!=0) {
+					System.out.print(seq1.charAt(i-1) + " ");
+				} else {
+					System.out.print("  ");
+				}
+				for (int j = 0; j<n; j++) {
+					System.out.printf("%3d, ", results[i][j]);
+				}
+			}
 			System.out.println();
-			if(i!=0) {
-				System.out.print(seq1.charAt(i-1) + " ");
-			} else {
-				System.out.print("  ");
-			}
-			for (int j = 0; j<n; j++) {
-				System.out.printf("%3d, ", results[i][j]);
-			}
 		}
-		//System.out.println();
 		return results;
 	}
 
-	private Pair<String> traceMatching(String seq1, String seq2, int[][] costMat) {
+	private Pair<String,String> traceMatching(String seq1, String seq2, int[][] costMat) {
 		String m1 = "";
 		String m2 = "";
 		int m = costMat.length;
@@ -226,24 +243,25 @@ public class SeqAlignment {
 				i--;
 			}
 		}
-		return new Pair<String>(m1,m2);
+		return new Pair<String,String>(m1,m2);
 	}
 
 	private String lastLetter(String str){
 		return str.substring(str.length()-1);
 	}
 	
-	public boolean printResult(){
-		//TODO: Implement
-		return false;
+	public static void printResult(List<Result> res){
+		for (Result r : res) {
+			System.out.println(r);
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
 		String input = "input/seq_alignment";
 		SeqAlignment sa = new SeqAlignment(new File(input + "/" + "BLOSUM62.txt"));
-		
-		args = new String[]{"Toy_FASTAs-in.txt"};
-		
+		Pair<String,String> p = new Pair<>("lol", "lel");
+		List<Pair<String, List<Result>>> results = new ArrayList<>();
+		DEBUG=false;
 		if(args.length == 0){
 			File folder = new File(input);
 			File[] files = folder.listFiles();
@@ -253,12 +271,16 @@ public class SeqAlignment {
 					continue;
 				}
 				sa.loadFasta(file);
-				sa.align();
+				results.add(new Pair<>(file.getName(), sa.align()));
 			}
 		} else{
 			sa.loadFasta(new File(input + "/" + args[0]));
-			sa.align();
+			results.add(new Pair<String,List<Result>>(args[0], sa.align()));
 		}
-		sa.printResult();
+		for(Pair<String, List<Result>> rl : results) {
+			System.out.println("File: " + rl.first);
+			sa.printResult(rl.second);
+			System.out.println();
+		}
 	}
 }
