@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.swing.event.ListSelectionEvent;
@@ -16,17 +18,20 @@ import javax.swing.event.ListSelectionEvent;
 public class NetworkFlow {	
 	private static final int INFINITY  = -1;
 	private Graph graph;
+	private Graph resGraph;
 	private HashMap<Node, Integer> indices;
 	private HashMap<Integer, Edge> edges = new HashMap<>();
 
 
-	private int loadInFile(File file) throws FileNotFoundException{
+	private void loadInFile(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
 		int nodeAmount = Integer.parseInt(scanner.nextLine());
 		indices = new HashMap<>(nodeAmount);
 
 		Node source = null;
 		Node target = null;
+		Node resSource = null;
+		Node resTarget = null;
 
 		List<Node> nodes = new ArrayList<>();
 		for(int i=0; i<nodeAmount; i++){
@@ -34,13 +39,21 @@ public class NetworkFlow {
 			Node node = new Node(nodeStr);
 			nodes.add(node);
 			indices.put(node, i);
-			if(nodeStr.equals("ORIGINS"))
+			if(nodeStr.equals("ORIGINS")){
 				source = node;
-			else if(nodeStr.equals("DESTINATIONS"))
+				resSource = new Node(node.getName());
+			}
+			else if(nodeStr.equals("DESTINATIONS")){
 				target = node;
+				resTarget = new Node(node.getName());
+			}
 			System.out.println("Node: " + nodeStr);
 		}
 
+		List<Node> resNodes = new ArrayList<>();
+		for(Node n : nodes)
+			resNodes.add(new Node(n.getName()));
+		
 		if(source == null || target == null){
 			scanner.close();
 			throw new RuntimeException("No source and/or target defined in input file!");
@@ -48,38 +61,51 @@ public class NetworkFlow {
 
 		int edgeAmount = Integer.parseInt(scanner.nextLine()); 
 		List<Edge> edges = new ArrayList<>(edgeAmount);
-		int maxCapacity = 0;
-
+		List<Edge> resEdges = new ArrayList<>(edgeAmount*2);
+		
 		for(int i=0; i<edgeAmount; i++){
 			String line = scanner.nextLine();
 			String[] split =line.split(" ");
 
 			int eStart = Integer.parseInt(split[0]);
 			int eEnd = Integer.parseInt(split[1]);
-			int eWeight = Integer.parseInt(split[2]);
+			int eCap = Integer.parseInt(split[2]);
 
-			if(eWeight < maxCapacity) //Store max capacity
-				maxCapacity = eWeight;
-
+			//Normal graph
 			Node startNode = nodes.get(eStart);
 			Node endNode = nodes.get(eEnd);
-			Edge edge = new Edge(i, startNode, endNode, 0, eWeight);
-
+			Edge edge = new Edge(i, startNode, endNode, 0, eCap);
+			
 			startNode.addEdge(edge);
-			endNode.addEdge(edge); //Edges are undirected
+			//TODO endNode.addEdge(edge);
 			edges.add(edge);
 			this.edges.put(i, edge);
 
-			System.out.println(String.format("Edge (id start, id end, weight): %2d --> %2d: %3d", eStart, eEnd, eWeight));
+
+			//For res graph
+			Node resStartNode = resNodes.get(eStart);
+			Node resEndNode = resNodes.get(eEnd);
+			Edge resEdge = new Edge(i, resStartNode, resEndNode, eCap, eCap);
+			Edge resComplEdge = new Edge(i, resEndNode, resStartNode, 0, eCap);
+			
+			resStartNode.addEdge(resEdge);
+			resEndNode.addEdge(resComplEdge);
+			resEdges.add(resEdge);
+			resEdges.add(resComplEdge);
+			
+			System.out.println(String.format("Edge (id start, id end, weight): %2d --> %2d: %3d", eStart, eEnd, eCap));
 		}
 		scanner.close();
 
-		graph = new Graph(edges, nodes, source, target, true);
-
-		return maxCapacity;
+		//Create normal graph
+		graph = new Graph(edges, nodes, source, target);
+		
+		//Create res-graph
+		resGraph = new Graph(resEdges, resNodes, resSource, resTarget);
+		
 	}
 
-	public int solve(int maxCapacity){
+	public int solve(){
 		if(graph == null)
 			throw new RuntimeException("Initialize grah before trying to solve!");
 
@@ -90,7 +116,7 @@ public class NetworkFlow {
 		RETURN f.*/ 
 
 		int flow = 0;
-		List<Edge> path = getPath(graph, graph.getSource(), graph.getTarget());
+		List<Edge> path = BFS(resGraph.getSource(), resGraph.getTarget());
 		for(int i=0; i<path.size(); i++){
 			int startId = indices.get(path.get(i).getStartNode());
 			int endId = indices.get(path.get(i).getEndNode());
@@ -104,7 +130,7 @@ public class NetworkFlow {
 			else
 				flow += aug;
 
-			path = getPath(graph, graph.getSource(), graph.getTarget());
+			path = BFS(resGraph.getSource(), resGraph.getTarget());
 			for(int i=0; i<path.size(); i++)
 				System.out.println(path.get(i).getStartNode().getName() + " --> " + path.get(i).getEndNode().getName());
 		}
@@ -132,22 +158,26 @@ public class NetworkFlow {
 	private List<Edge> BFS(Node start, Node target){
 		Queue<BFSObject> queue = new LinkedList<>();
 		queue.add(new BFSObject(start, null, null));
-
+		
+		Set<Node> markedNodes = new HashSet<>();
+		
 		boolean isDone = false;
 		while(!queue.isEmpty() && !isDone){
 			BFSObject o = queue.remove();
+			if(markedNodes.contains(o.node))
+					continue;
+			
+			markedNodes.add(o.node);
+			
 			for(Edge e : o.node.getEdges()){
-				if(e.getCapacity() != -1 && e.getCapacity()-e.getFlow() <= 0)
-					e.markDiscovered(true);
-
-				if(!e.isDiscovered()){
-					e.markDiscovered(true);
+				if(e.getFlow() == INFINITY || e.getFlow() > 0){
 					Node endNode = e.getEndNode();
 					queue.add(new BFSObject(endNode, o, e));
-					if(endNode == target){
+					
+					if(e.getEndNode() == target){
 						isDone = true;
 						break;
-					}		
+					}
 				}
 			}
 		}
@@ -190,35 +220,6 @@ public class NetworkFlow {
 		return path;
 	}
 
-	private List<Edge> getPath(Graph graph, Node source, Node target){
-		graph.setAllEdgesAsDiscovered(false);
-
-		return BFS(source, target);
-
-		/*Queue<Edge> pathStack = new LinkedList<>();
-
-		for(Edge edge: source.getEdges()){
-			pathStack.add(edge);
-
-			while(!pathStack.isEmpty()){
-				Edge e = pathStack.remove();
-				if(e.getEndNode() == target) {
-					break; //Path found
-				} else {
-					for(Edge e : e.getEndNode().getEdges()){
-
-					}
-				}
-			}
-		}
-
-
-
-
-
-		return path;*/
-	}
-
 
 	private int augment(int flow, /*int capacity,*/ List<Edge> path){
 
@@ -230,13 +231,14 @@ public class NetworkFlow {
 		RETURN f*/
 
 		int b = findBottleneck(path);
+		System.out.println("Bottleneck: " + b);
 
 		for(Edge edge : path){
-			if(graph.getEdges().contains(edge)){ //TODO Flaw here
+			if(graph.getEdges().contains(edge)){ 
 				edge.setFlow(edge.getFlow() + b);
 			} else {
-				Edge complEdge = graph.getComplementaryEdgeFrom(edge.getId());
-				complEdge.setFlow(complEdge.getFlow() - b);//edge.getResidualEdge().setFlow(edge.getResidualEdge().getFlow() - b);
+				//Edge complEdge =  graph.getComplementaryEdgeFrom(edge.getId());
+				//complEdge.setFlow(complEdge.getFlow() - b);//edge.getResidualEdge().setFlow(edge.getResidualEdge().getFlow() - b);
 			}
 		}
 
@@ -277,12 +279,12 @@ public class NetworkFlow {
 				if(file.getName().contains("out.txt")){
 					continue;
 				}
-				int max = nf.loadInFile(file);
-				nf.solve(max);
+				nf.loadInFile(file);
+				int max = nf.solve();
 			}
 		} else{
-			int max = nf.loadInFile(new File(input + "/" + args[0]));
-			nf.solve(max);
+			nf.loadInFile(new File(input + "/" + args[0]));
+			int max = nf.solve();
 		}
 
 		nf.printSolution();
