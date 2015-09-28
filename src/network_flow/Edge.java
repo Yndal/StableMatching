@@ -7,13 +7,15 @@ public class Edge {
 	private int flow;
 	private final int id;
 	private boolean discovered = false;
+	private final boolean isForward;
 	
-	public Edge(int id, Node startNode, Node endNode, int flow, int capacity){
+	public Edge(int id, Node startNode, Node endNode, int flow, int capacity, boolean isForward){
 		this.id = id;
 		this.startNode = startNode;
 		this.endNode = endNode;
 		this.capacity = capacity;
 		this.flow = flow;
+		this.isForward = isForward;
 	}
 
 	
@@ -47,6 +49,10 @@ public class Edge {
 	public void setFlow(int flow){
 		this.flow = flow;
 		//TODO Update in residual?
+	}
+	
+	public boolean isForward(){
+		return isForward;
 	}
 	
 	/*public Edge getResidualEdge(){
