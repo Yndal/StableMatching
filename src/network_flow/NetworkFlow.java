@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Scanner;
 
 import javax.swing.event.ListSelectionEvent;
@@ -33,10 +35,12 @@ public class NetworkFlow {
 			Node node = new Node(nodeStr);
 			nodes.add(node);
 			indices.put(node, i);
-			if(nodeStr.equals("ORIGINS"))
+			if(nodeStr.equals("ORIGINS")) {
 				source = node;
-			else if(nodeStr.equals("DESTINATIONS"))
+			}
+			else if(nodeStr.equals("DESTINATIONS")) {
 				target = node;
+			}
 			System.out.println("Node: " + nodeStr);
 		}
 		
@@ -111,35 +115,59 @@ public class NetworkFlow {
 		System.out.println("Solved: Max flow is " + flow);
 		return flow;
 	}
-	
+
 	private List<Edge> BFS(Node start, Node target){
-		for(Edge e : start.getEdges()){
-			if(e.isDiscovered() || e.getFlow() == 0)
-				continue;
-			
-			e.markDiscovered(true);
-			if(e.getEndNode() == target){
-				List<Edge> list = new ArrayList<>();
-				list.add(0,e);
-				return list;
-			} else {
-				List<Edge> list = BFS(e.getEndNode(), target);
-				if(!list.isEmpty()){
-					list.add(0,e);
-					return list;
-				} 
-			}	
-		}	
-		return new ArrayList<>();
+		Queue<Node> queue = new LinkedList<>();
+
+		HashMap<Node, NodeEdgePair> parentMap = new HashMap<>();
+		Set<Node> visitedSet = new HashSet<>();
+
+		Set<NodeEdgePair> adjs = start.getAdjecents();
+		for (NodeEdgePair childPair : adjs) {
+			parentMap.put(childPair.node, new NodeEdgePair(childPair.edge, start));
+			queue.add(childPair.node);
+		}
+		visitedSet.add(start); //shouldn't matter
+
+		while(!queue.isEmpty()){
+			Node n = queue.remove();
+			visitedSet.add(n);
+
+			if (target == n) {
+				break;
+			}
+
+			adjs = n.getAdjecents();
+			for (NodeEdgePair childPair : adjs) {
+				if (visitedSet.contains(childPair.node)) {
+					continue;
+				}
+				parentMap.put(childPair.node, new NodeEdgePair(childPair.edge, n));
+				queue.add(childPair.node);
+			}
+		}
+
+		if (!visitedSet.contains(target)) {
+			new ArrayList<>();
+		}
+
+		NodeEdgePair nep = parentMap.get(target);
+		List<Edge> result = new LinkedList<>();
+		do {
+			result.add(nep.edge);
+			nep = parentMap.get(nep.node);
+		} while (start != nep.node);
+		result.add(nep.edge);
+		return result;
 	}
 	
 	private List<Edge> getPath(Graph graph, Node source, Node target){
 		graph.setAllEdgesAsDiscovered(false);
-		
+
 		return BFS(source, target);
-		
+
 		/*Queue<Edge> pathStack = new LinkedList<>();
-		
+
 		for(Edge edge: source.getEdges()){
 			pathStack.add(edge);
 			
@@ -154,11 +182,6 @@ public class NetworkFlow {
 				}
 			}
 		}
-		
-		
-		
-		
-		
 		return path;*/
 	}
 	
