@@ -5,23 +5,26 @@ public class Edge {
 	private final Node endNode;
 	private final int capacity;
 	private int flow;
-	private Edge residualEdge = null;
+	//private Edge residualEdge = null;
 	private boolean discovered = false;
 	
-	public Edge(Node startNode, Node endNode, int flow, int capacity){
+	public Edge(Node startNode, Node endNode, int flow, int capacity/*, boolean createWithResidual*/){
 		this.startNode = startNode;
 		this.endNode = endNode;
 		this.capacity = capacity;
 		this.flow = flow;
-		this.residualEdge = new Edge(startNode, endNode, capacity, capacity, false);
+	/*	if(createWithResidual)
+			this.residualEdge = new Edge(startNode, endNode, capacity, capacity, false);
+		else
+			this.residualEdge = null;*/
 	}
 	
-	private Edge(Node startNode, Node endNode, int flow, int capacity, boolean isResidualEdge){
+	/*private Edge(Node startNode, Node endNode, int flow, int capacity, boolean isResidualEdge){
 		this.startNode = startNode;
 		this.endNode = endNode;
 		this.capacity = capacity;
 		this.flow = flow;
-	}
+	}*/
 	
 	public void markDiscovered(boolean b){
 		discovered = b;
@@ -49,9 +52,10 @@ public class Edge {
 	
 	public void setFlow(int flow){
 		this.flow = flow;
+		//TODO Update in residual?
 	}
 	
-	public Edge getResidualEdge(){
+	/*public Edge getResidualEdge(){
 		return residualEdge;
-	}
+	}*/
 }

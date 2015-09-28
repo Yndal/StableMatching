@@ -16,40 +16,8 @@ import network_flow.Graph.ResidualGraph;
 public class NetworkFlow {	
 	private static final int INFINITY  = -1;
 	private Graph graph;
-	private ResidualGraph resGraph;
 	private HashMap<Node, Integer> indices;
-	
-	private void loadOutFile(File file) throws FileNotFoundException{
-		/*Scanner scanner = new Scanner(file);
-		String s;
-		boolean hasLetters = false;
-		while(scanner.hasNextLine()){
-			s = scanner.nextLine();
-			if (s.startsWith("#"))
-				continue;
-			//Letters
-			if (!hasLetters){
-				for (String letter : s.trim().split("\\s+")){
-					letters.add(letter);
-					alignmentData.put(letter, new HashMap<String, Integer>());
-				}
-				hasLetters = true;
-			}
-			//Costs
-			else {
-				String[] splits = s.trim().split("\\s+");
-				if (splits.length == letters.size() + 1){
-					String letter = splits[0];
-					for (int i=1; i<splits.length; i++){
-						String colLetter = letters.get(i-1);
-						int cost = Integer.parseInt(splits[i]);
-						alignmentData.get(letter).put(colLetter, cost);
-					}
-				}
-			}
-		}
-		scanner.close();*/
-	}
+
 	
 	private int loadInFile(File file) throws FileNotFoundException{
 		Scanner scanner = new Scanner(file);
@@ -104,8 +72,7 @@ public class NetworkFlow {
 		}
 		scanner.close();
 		
-		graph = new Graph(edges, nodes, source, target);
-		resGraph = new ResidualGraph(edges, nodes, source, target);
+		graph = new Graph(edges, nodes, source, target, true);
 		
 		return maxCapacity;
 	}
@@ -121,7 +88,7 @@ public class NetworkFlow {
 		RETURN f.*/ 
 		
 		int flow = 0;
-		List<Edge> path = getPath(resGraph, resGraph.getSource(), resGraph.getTarget());
+		List<Edge> path = getPath(graph.getResidualGraph(), graph.getResidualGraph().getSource(), graph.getResidualGraph().getTarget());
 		for(int i=0; i<path.size(); i++){
 			int startId = indices.get(path.get(i).getStartNode());
 			int endId = indices.get(path.get(i).getEndNode());
@@ -135,11 +102,12 @@ public class NetworkFlow {
 			else
 				flow += aug;
 			
-			path = getPath(resGraph, resGraph.getSource(), resGraph.getTarget());
+			path = getPath(graph.getResidualGraph(), graph.getResidualGraph().getSource(), graph.getResidualGraph().getTarget());
 			for(int i=0; i<path.size(); i++)
 				System.out.println(path.get(i).getStartNode().getName() + " --> " + path.get(i).getEndNode().getName());
 		}
 		
+		System.out.println("Solved: Max flow is " + flow);
 		return flow;
 	}
 	
@@ -160,8 +128,7 @@ public class NetworkFlow {
 					return list;
 				} 
 			}	
-		}
-		
+		}	
 		return new ArrayList<>();
 	}
 	
@@ -210,7 +177,8 @@ public class NetworkFlow {
 			if(graph.getEdges().contains(edge)){ //TODO Flaw here
 				edge.setFlow(edge.getFlow() + b);
 			} else {
-				edge.getResidualEdge().setFlow(edge.getResidualEdge().getFlow() - b);
+				Edge complEdge = graph.getComplementaryEdgeFrom(edge);
+				complEdge.setFlow(complEdge.getFlow() - b);//edge.getResidualEdge().setFlow(edge.getResidualEdge().getFlow() - b);
 			}
 		}
 		
@@ -241,7 +209,6 @@ public class NetworkFlow {
 	public static void main(String[] args) throws Exception {
 		String input = "input/network_flow";
 		NetworkFlow nf = new NetworkFlow();
-		nf.loadOutFile(new File(input + "/" + "BLOSUM62.txt"));
 		
 		args = new String[]{"rail.txt"};
 		
