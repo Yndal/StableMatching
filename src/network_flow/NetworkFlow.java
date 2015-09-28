@@ -34,26 +34,24 @@ public class NetworkFlow {
 		Node resTarget = null;
 
 		List<Node> nodes = new ArrayList<>();
+		List<Node> resNodes = new ArrayList<>();
 		for(int i=0; i<nodeAmount; i++){
 			String nodeStr = scanner.nextLine();
 			Node node = new Node(nodeStr);
+			Node resNode = new Node(nodeStr);
 			nodes.add(node);
+			resNodes.add(resNode);
 			indices.put(node, i);
 			if(nodeStr.equals("ORIGINS")){
 				source = node;
-				resSource = new Node(node.getName());
-			}
-			else if(nodeStr.equals("DESTINATIONS")){
+				resSource = resNode;
+			}else if(nodeStr.equals("DESTINATIONS")){
 				target = node;
-				resTarget = new Node(node.getName());
+				resTarget = resNode;
 			}
 			System.out.println("Node: " + nodeStr);
 		}
 
-		List<Node> resNodes = new ArrayList<>();
-		for(Node n : nodes)
-			resNodes.add(new Node(n.getName()));
-		
 		if(source == null || target == null){
 			scanner.close();
 			throw new RuntimeException("No source and/or target defined in input file!");

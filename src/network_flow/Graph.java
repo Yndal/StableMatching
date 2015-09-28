@@ -11,10 +11,10 @@ public class Graph {
 	private final Node target;
 	
 	public Graph(List<Edge> edges, List<Node> nodes, Node source, Node target){
+		this.edges.addAll(edges);
 		this.nodes.addAll(nodes);
 		this.source = source;
-		this.target = target;
-		this.edges.addAll(edges);	
+		this.target = target;	
 	}
 	
 	public Node getSource(){
