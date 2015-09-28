@@ -5,37 +5,26 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Graph {
-	static class ResidualGraph extends Graph{
-		private final HashMap<Edge, Edge> resEdges = new HashMap<>();
-		
-		public ResidualGraph(List<Edge> edges, List<Node> nodes, Node source, Node target, HashMap<Edge,Edge> compEdges) {
-			super(edges, nodes, source, target, false);
-			
-			for(Edge edge : edges){
-				Edge resEdge = new Edge(edge.getEndNode(), edge.getStartNode(), edge.getCapacity(), edge.getCapacity());
-				compEdges.put(edge, resEdge);
-				compEdges.put(resEdge, edge);
-				resEdges.put(edge, resEdge);
-			}
-		}
-	}
-	
 	private final List<Edge> edges = new ArrayList<>();
 	private final List<Node> nodes = new ArrayList<>();
 	private final Node source;
 	private final Node target;
-	private final ResidualGraph resGraph;
 	private final HashMap<Edge, Edge> compEdges = new HashMap<>();
 	
-	public Graph(List<Edge> edges, List<Node> nodes, Node source, Node target, boolean createWithResidualGraph){
-		this.edges.addAll(edges);
+	public Graph(List<Edge> edges, List<Node> nodes, Node source, Node target, boolean createAsResidualGraph){
 		this.nodes.addAll(nodes);
 		this.source = source;
 		this.target = target;
-		if(createWithResidualGraph){
-			resGraph = new ResidualGraph(edges, nodes, source, target, compEdges);
-		} else 
-			resGraph = null;
+		if(createAsResidualGraph){
+			for(Edge e : edges){
+				Edge e1 = new Edge(e.getId(), e.getStartNode(), e.getEndNode(), e.getCapacity(), e.getCapacity()); //Normal direction
+				Edge e2 = new Edge(e.getId(), e.getEndNode(), e.getStartNode(), 0, 0); //Complementary direction
+				this.edges.add(e1); 
+				this.edges.add(e2);
+			}
+		} else {
+			this.edges.addAll(edges);
+		}	
 	}
 	
 	public Node getSource(){
@@ -61,10 +50,6 @@ public class Graph {
 	public void setAllEdgesAsDiscovered(boolean b){
 		for(Edge e : edges)
 			e.markDiscovered(b);		
-	}
-	
-	public ResidualGraph getResidualGraph(){
-		return resGraph;
 	}
 	
 	public Edge getComplementaryEdgeFrom(Edge edge){

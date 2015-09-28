@@ -5,10 +5,12 @@ public class Edge {
 	private final Node endNode;
 	private final int capacity;
 	private int flow;
+	private final int id;
 	//private Edge residualEdge = null;
 	private boolean discovered = false;
 	
-	public Edge(Node startNode, Node endNode, int flow, int capacity/*, boolean createWithResidual*/){
+	public Edge(int id, Node startNode, Node endNode, int flow, int capacity/*, boolean createWithResidual*/){
+		this.id = id;
 		this.startNode = startNode;
 		this.endNode = endNode;
 		this.capacity = capacity;
@@ -34,6 +36,9 @@ public class Edge {
 		return discovered;
 	}
 	
+	public int getId(){
+		return id;
+	}
 	public Node getStartNode() {
 		return startNode;
 	}

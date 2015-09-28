@@ -11,12 +11,12 @@ import java.util.Scanner;
 
 import javax.swing.event.ListSelectionEvent;
 
-import network_flow.Graph.ResidualGraph;
 
 public class NetworkFlow {	
 	private static final int INFINITY  = -1;
 	private Graph graph;
 	private HashMap<Node, Integer> indices;
+	private HashMap<Integer, Edge> edges = new HashMap<>();
 
 	
 	private int loadInFile(File file) throws FileNotFoundException{
@@ -62,11 +62,12 @@ public class NetworkFlow {
 			
 			Node startNode = nodes.get(eStart);
 			Node endNode = nodes.get(eEnd);
-			Edge edge = new Edge(startNode, endNode, 0, eWeight);
+			Edge edge = new Edge(i, startNode, endNode, 0, eWeight);
 			
 			startNode.addEdge(edge);
 			endNode.addEdge(edge); //Edges are undirected
 			edges.add(edge);
+			this.edges.put(i, edge);
 			
 			System.out.println(String.format("Edge (id start, id end, weight): %2d --> %2d: %3d", eStart, eEnd, eWeight));
 		}
@@ -88,7 +89,7 @@ public class NetworkFlow {
 		RETURN f.*/ 
 		
 		int flow = 0;
-		List<Edge> path = getPath(graph.getResidualGraph(), graph.getResidualGraph().getSource(), graph.getResidualGraph().getTarget());
+		List<Edge> path = getPath(graph, graph.getSource(), graph.getTarget());
 		for(int i=0; i<path.size(); i++){
 			int startId = indices.get(path.get(i).getStartNode());
 			int endId = indices.get(path.get(i).getEndNode());
@@ -102,7 +103,7 @@ public class NetworkFlow {
 			else
 				flow += aug;
 			
-			path = getPath(graph.getResidualGraph(), graph.getResidualGraph().getSource(), graph.getResidualGraph().getTarget());
+			path = getPath(graph, graph.getSource(), graph.getTarget());
 			for(int i=0; i<path.size(); i++)
 				System.out.println(path.get(i).getStartNode().getName() + " --> " + path.get(i).getEndNode().getName());
 		}
