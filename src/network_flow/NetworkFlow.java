@@ -12,11 +12,12 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
 import javax.swing.event.ListSelectionEvent;
 
 
 public class NetworkFlow {	
-	private static final int INFINITY  = -1;
+	public static final int INFINITY  = -1;
 	private Graph graph;
 	private Graph resGraph;
 	private HashMap<Node, Integer> indices;
@@ -44,10 +45,10 @@ public class NetworkFlow {
 			nodes.add(node);
 			resNodes.add(resNode);
 			indices.put(node, i);
-			if(nodeStr.equals("ORIGINS")){
+			if(i==0){
 				source = node;
 				resSource = resNode;
-			}else if(nodeStr.equals("DESTINATIONS")){
+			}else if(i==nodeAmount-1){
 				target = node;
 				resTarget = resNode;
 			}
@@ -85,7 +86,7 @@ public class NetworkFlow {
 			//For res graph
 			Node resStartNode = resNodes.get(eStart);
 			Node resEndNode = resNodes.get(eEnd);
-			Edge resEdge = new Edge(i, resStartNode, resEndNode, eCap, eCap, true);
+			Edge resEdge = new Edge(i, resStartNode, resEndNode, 0, eCap, true);
 			Edge resComplEdge = new Edge(i, resEndNode, resStartNode, 0, eCap, false);
 			
 			resStartNode.addEdge(resEdge);
@@ -95,15 +96,45 @@ public class NetworkFlow {
 			edgesRes.put(i, resEdge);
 			edgesResCompl.put(i, resComplEdge);
 			
+			resEdge.setReverseEdge(resComplEdge);
+			resComplEdge.setReverseEdge(resEdge);
+			
 			//System.out.println(String.format("Edge (id start, id end, weight): %2d --> %2d: %3d", eStart, eEnd, eCap));
 		}
 		scanner.close();
+		if(edges.size() != edgesRes.size() ||
+				edges.size() != edgesResCompl.size() ||
+				edges.size() != edgesNorm.size())
+			throw new RuntimeException("edges not correct");
+			
 
 		//Create normal graph
 		graph = new Graph(edges, nodes, source, target);
 		
 		//Create res-graph
 		resGraph = new Graph(resEdges, resNodes, resSource, resTarget);
+		
+		if(graph.getEdges().size()*2 != resGraph.getEdges().size())
+			throw new RuntimeException("graph edges is not half the size of resGraph edges");
+		
+		int forward = 0;
+		int backward = 0;
+		for(Edge e : resGraph.getEdges())
+			if(e.isForward())
+				forward++;
+			else 
+				backward++;
+		if(forward != backward)
+			throw new RuntimeException("back vs forth");
+		
+		int[] ids = new int[resGraph.getEdges().size()/2];
+		for(Edge e : resGraph.getEdges())
+			ids[e.getId()]++;
+					
+		for(int i : ids)
+			if(i!=2)
+				throw new RuntimeException("ids");
+		
 		
 	}
 
@@ -122,7 +153,7 @@ public class NetworkFlow {
 		
 		while(!path.isEmpty()){
 			for(int i=0; i<path.size(); i++)
-				System.out.println(path.get(i).getStartNode().getName() + " --> " + path.get(i).getEndNode().getName() + ": " + path.get(i).getFlow());
+				System.out.println(path.get(i).getStartNode().getName() + " --> " + path.get(i).getEndNode().getName() + ": " + path.get(i).getFreeCapacity() + "/" + path.get(i).getCapacity());
 			
 			int aug = augment(flow, /*capacity,*/ path);
 			System.out.println("Augmented with " + aug + ". Total is " + (flow + aug) + "\n");
@@ -166,12 +197,12 @@ public class NetworkFlow {
 		while(!queue.isEmpty() && !isDone){
 			BFSObject o = queue.remove();
 			if(markedNodes.contains(o.node))
-					continue;
+				continue;
 			
 			markedNodes.add(o.node);
 			
 			for(Edge e : o.node.getEdges()){
-				if(e.getFlow() == INFINITY || e.getFlow() > 0){
+				if(e.getFreeCapacity() == INFINITY || e.getFreeCapacity() > 0){
 					Node endNode = e.getEndNode();
 					queue.add(new BFSObject(endNode, o, e));
 					
@@ -240,28 +271,29 @@ public class NetworkFlow {
 
 		for(Edge edge : path){
 			if(edge.isForward()){ 
-				//Augment the residual graph - forward
-				edge.setFlow(edge.getFlow() - b); 
+				//Augment the residual graph
+				Edge eRes = edgesRes.get(edge.getId());
+				eRes.augmentFlow(b); 
 				
-				//Augment the residual graph - backward
-				Edge eCompl = edgesResCompl.get(edge.getId());
-				eCompl.setFlow(eCompl.getFlow() + b); 
-				
-				
-				//Augment the normal graph
+//				//Augment the residual graph - backward
+//				Edge eCompl = edgesResCompl.get(edge.getId());
+//				eCompl.augmentFlow(b); 
+//						
+//				//Augment the normal graph
 				Edge eNorm = edgesNorm.get(edge.getId());
-				eNorm.setFlow(eNorm.getFlow() + b);
+				eNorm.augmentFlow(b);
 			} else {
-				//Augment the residual graph - forward
-				edge.setFlow(edge.getFlow() + b); 
+				//Augment the residual graph
+				Edge eRes = edgesRes.get(edge.getId());
+				eRes.augmentFlow(-b); 
 				
-				//Augment the residual graph - backward
-				Edge eCompl = edgesResCompl.get(edge.getId());
-				eCompl.setFlow(eCompl.getFlow() - b); 
+//				//Augment the residual graph - backward
+//				Edge eCompl = edgesResCompl.get(edge.getId());
+//				eCompl.augmentFlow(- b); 
 				
 				//Augment normal graph
 				Edge eNorm = edgesNorm.get(edge.getId());
-				eNorm.setFlow(eNorm.getFlow() - b);
+				eNorm.augmentFlow(-b);
 			}
 		}
 
@@ -271,12 +303,12 @@ public class NetworkFlow {
 	private int findBottleneck(List<Edge> path){
 		int min = Integer.MAX_VALUE; //Better than INFITY
 		for(Edge edge : path){
-			if(edge.getCapacity() == INFINITY)
+			if(edge.getFreeCapacity() == INFINITY)
 				continue;
 
 			//TODO This will be 0 during the first round as we are using the residual graph
 			//TODO Might cause errors later 
-			int capLeft = /*edge.getCapacity() -*/ edge.getFlow();
+			int capLeft = /*edge.getCapacity() -*/ edge.getFreeCapacity();
 
 			if(capLeft < min)
 				min = capLeft;
@@ -299,6 +331,7 @@ public class NetworkFlow {
 		String input = "input/network_flow";
 		NetworkFlow nf = new NetworkFlow();
 
+		//args = new String[]{"test4.txt"};
 		args = new String[]{"rail.txt"};
 
 		if(args.length == 0){
